@@ -1,0 +1,26 @@
+name: robel-mjrl
+channels:
+- pytorch
+- defaults
+dependencies:
+- python=3.7
+- pip>=19.1
+- pytorch-cpu=1.1.0
+- tabulate=0.8.3
+- termcolor=1.1.0
+- torchvision-cpu=0.3.0
+- pip:
+  - click
+  - cloudpickle
+  - gym==0.12
+  - ipdb
+  - matplotlib
+  - mujoco-py<2.1,>=2.0
+  - pyyaml
+  - tqdm
+  - wheel
+  - scipy
+  - git+git://github.com/deepmind/dm_control.git
+  - transforms3d==0.3.1
+  - dynamixel_sdk @ https://github.com/ROBOTIS-GIT/DynamixelSDK/archive/3.7.0.zip#subdirectory=python
+  - openvr==1.3.2201

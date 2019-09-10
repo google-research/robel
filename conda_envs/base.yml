@@ -1,0 +1,14 @@
+name: robel
+channels:
+- defaults
+- conda-forge
+dependencies:
+- python=3.6
+- pip>=19.0
+- pip:
+  - gym>=0.11.0,<0.14.0
+  - mujoco-py>2.0,<2.1
+  - numpy>=1.13.3
+  - transforms3d>=0.3.0<0.4
+  - dynamixel_sdk @ https://github.com/ROBOTIS-GIT/DynamixelSDK/archive/3.7.0.zip#subdirectory=python
+  - openvr==1.3.2201

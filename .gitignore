@@ -1,0 +1,23 @@
+# General
+.DS_Store
+*.swp
+*.profraw
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+build
+dist
+
+# Tooling output
+pytype_output
+*.egg-info
+.ipynb_checkpoints
+MUJOCO_LOG.TXT
+.pytype
+output
+
+# Editors
+.vscode
+.idea
