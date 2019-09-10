@@ -66,10 +66,8 @@ to `~/.mujoco/mujoco200`. Ensure your MuJoCo license key is placed at
 ROBEL requires Python 3.5 or higher. You can install ROBEL by running:
 
 ``` bash
-pip install git+git://github.com/google-research/robel.git
+pip install robel
 ```
-
-*PyPI package is coming soon.*
 
 We recommend doing this in a `virtualenv` or a Conda environment to avoid
 interfering with system dependencies or existing packages.
