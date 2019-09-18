@@ -14,14 +14,13 @@
 
 """Unit tests for MockSimScene."""
 
-import unittest
-
+from absl.testing import absltest
 import numpy as np
 
 from robel.utils.testing.mock_sim_scene import MockSimScene
 
 
-class MockSimSceneTest(unittest.TestCase):
+class MockSimSceneTest(absltest.TestCase):
     """Tests MockSimScene."""
 
     def test_defaults(self):
@@ -86,4 +85,4 @@ class MockSimSceneTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    absltest.main()

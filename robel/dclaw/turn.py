@@ -70,7 +70,6 @@ class BaseDClawTurn(BaseDClawObjectEnv, metaclass=abc.ABCMeta):
             frame_skip=frame_skip,
             **kwargs)
 
-        self.last_action = np.zeros(9)
         self._interactive = interactive
         self._desired_claw_pos = RESET_POSE
 
@@ -124,7 +123,7 @@ class BaseDClawTurn(BaseDClawObjectEnv, metaclass=abc.ABCMeta):
             ('object_x', np.cos(object_state.qpos)),
             ('object_y', np.sin(object_state.qpos)),
             ('object_qvel', object_state.qvel),
-            ('last_action', self.last_action),
+            ('last_action', self._get_last_action()),
             ('target_error', target_error),
         ))
         # Add hardware-specific state if present.

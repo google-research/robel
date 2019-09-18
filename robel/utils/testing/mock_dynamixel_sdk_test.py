@@ -14,12 +14,12 @@
 
 """Unit tests for MockDynamixelSdk."""
 
-import unittest
+from absl.testing import absltest
 
 from robel.utils.testing.mock_dynamixel_sdk import patch_dynamixel
 
 
-class MockDynamixelSdkTest(unittest.TestCase):
+class MockDynamixelSdkTest(absltest.TestCase):
     """Tests MockDynamixelSdk."""
 
     @patch_dynamixel(test=[1, 2, 3, 4])
@@ -98,4 +98,4 @@ class MockDynamixelSdkTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    absltest.main()

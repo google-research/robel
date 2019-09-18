@@ -21,16 +21,21 @@ from robel.utils.registration import register
 #===============================================================================
 
 # Default number of steps per episode.
-_POSE_EPISODE_LEN = 40  # 40*40*2.5ms = 4s
+_POSE_EPISODE_LEN = 80  # 80*20*2.5ms = 4s
 
 register(
-    env_id='DClawPoseStill-v0',
-    class_path='robel.dclaw.pose:DClawPoseStill',
+    env_id='DClawPoseFixed-v0',
+    class_path='robel.dclaw.pose:DClawPoseFixed',
     max_episode_steps=_POSE_EPISODE_LEN)
 
 register(
-    env_id='DClawPoseMotion-v0',
-    class_path='robel.dclaw.pose:DClawPoseMotion',
+    env_id='DClawPoseRandom-v0',
+    class_path='robel.dclaw.pose:DClawPoseRandom',
+    max_episode_steps=_POSE_EPISODE_LEN)
+
+register(
+    env_id='DClawPoseRandomDynamics-v0',
+    class_path='robel.dclaw.pose:DClawPoseRandomDynamics',
     max_episode_steps=_POSE_EPISODE_LEN)
 
 #===============================================================================

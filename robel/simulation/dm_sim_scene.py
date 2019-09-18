@@ -15,10 +15,8 @@
 """Simulation using DeepMind Control Suite."""
 
 import copy
-import functools
 import logging
-import os
-from typing import Any, Callable
+from typing import Any
 
 import dm_control.mujoco as dm_mujoco
 
@@ -40,11 +38,6 @@ class DMSimScene(SimScene):
             A dm_control Physics object.
         """
         if isinstance(model_handle, str):
-            if not os.path.isfile(model_handle):
-                raise ValueError(
-                    '[DMSimScene] Invalid model file path: {}'.format(
-                        model_handle))
-
             if model_handle.endswith('.xml'):
                 sim = dm_mujoco.Physics.from_xml_path(model_handle)
             else:

@@ -192,6 +192,13 @@ class RobotEnv(gym.Env, metaclass=abc.ABCMeta):
             raise NotImplementedError('`obs_dim` only supports Box spaces.')
         return np.prod(self.observation_space.shape).item()
 
+    @property
+    def action_dim(self) -> int:
+        """Returns the size of the action space."""
+        if not isinstance(self.action_space, spaces.Box):
+            raise NotImplementedError('`action_dim` only supports Box spaces.')
+        return np.prod(self.action_space.shape).item()
+
     def seed(self, seed: Optional[int] = None) -> Sequence[int]:
         """Seeds the environment.
 
@@ -212,6 +219,7 @@ class RobotEnv(gym.Env, metaclass=abc.ABCMeta):
         Returns:
             The initial observation of the environment after resetting.
         """
+        self.last_action = None
         self.sim.reset()
         self.sim.forward()
         self._reset()
@@ -464,6 +472,12 @@ class RobotEnv(gym.Env, metaclass=abc.ABCMeta):
             ])
         raise NotImplementedError(
             'Override _initialize_state_space for state: {}'.format(state))
+
+    def _get_last_action(self) -> np.ndarray:
+        """Returns the previous action, or zeros if no action has been taken."""
+        if self.last_action is None:
+            return np.zeros((self.action_dim,), dtype=self.action_space.dtype)
+        return self.last_action
 
     def _preprocess_action(self, action: np.ndarray) -> np.ndarray:
         """Transforms an action before passing it to `_step()`.

@@ -49,16 +49,14 @@ class CalibrationMap:
             **group_kwargs
         }
 
-    def update_group_configs(self, config: Dict[str, Any]):
+    def update_group_configs(self, configs: Dict[str, Any]):
         """Updates the calibration values for groups in the configuration.
 
         Args:
             config: The component configuration to update.
             *group_names: One or more group names to update.
         """
-        if 'groups' not in config:
-            raise ValueError('Configuration does not have "groups" entry.')
-        for group_config in config['groups'].values():
+        for group_config in configs.values():
             if 'motor_ids' not in group_config:
                 continue
             group_config.update(self.get_parameters(group_config['motor_ids']))

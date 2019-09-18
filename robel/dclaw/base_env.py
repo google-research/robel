@@ -111,8 +111,7 @@ class BaseDClawEnv(RobotEnv, metaclass=abc.ABCMeta):
             builder.set_dynamixel_device_path(self._device_path)
             builder.set_hardware_calibration_map(DEFAULT_DCLAW_CALIBRATION_MAP)
             builder.update_group(
-                'dclaw',
-                motor_ids=[10, 11, 12, 20, 21, 22, 30, 31, 32, 40, 41, 42])
+                'dclaw', motor_ids=[10, 11, 12, 20, 21, 22, 30, 31, 32])
 
     def _initialize_action_space(self) -> gym.Space:
         """Returns the observation space to use for this environment."""
@@ -205,7 +204,7 @@ class BaseDClawObjectEnv(BaseDClawEnv, metaclass=abc.ABCMeta):
             builder.update_group(
                 'object', sim_observation_noise=self._sim_observation_noise)
         if self._device_path:
-            builder.update_group('object', [50])
+            builder.update_group('object', motor_ids=[50])
             # Add group to disable during reset to avoid getting stuck.
             builder.add_group(
                 'disable_in_reset', motor_ids=[10, 12, 20, 22, 30, 32, 50])

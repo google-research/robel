@@ -14,33 +14,32 @@
 
 """Unit tests for D'Claw turn tasks."""
 
-import unittest
-
+from absl.testing import absltest
+from absl.testing import parameterized
 import gym
 import numpy as np
-from parameterized import parameterized_class
 
 from robel.dclaw.turn import (DClawTurnFixed, DClawTurnRandom,
                                    DClawTurnRandomDynamics)
 # pylint: disable=no-member
 
 
-@parameterized_class(('env_id', 'env_class'), [
+@parameterized.parameters(
     ('DClawTurnFixed-v0', DClawTurnFixed),
     ('DClawTurnRandom-v0', DClawTurnRandom),
     ('DClawTurnRandomDynamics-v0', DClawTurnRandomDynamics),
-])
-class DClawTurnTest(unittest.TestCase):
+)
+class DClawTurnTest(absltest.TestCase):
     """Unit test class for RobotEnv."""
 
-    def test_gym_make(self):
+    def test_gym_make(self, env_id, env_cls):
         """Accesses the sim, model, and data properties."""
-        env = gym.make(self.env_id)
-        self.assertIsInstance(env.unwrapped, self.env_class)
+        env = gym.make(env_id)
+        self.assertIsInstance(env.unwrapped, env_cls)
 
-    def test_spaces(self):
+    def test_spaces(self, _, env_cls):
         """Checks the observation, action, and state spaces."""
-        env = self.env_class()
+        env = env_cls()
         observation_size = np.sum([
             9,  # claw_qpos
             1,  # object_x
@@ -55,12 +54,12 @@ class DClawTurnTest(unittest.TestCase):
         self.assertEqual(env.state_space['object_qpos'].shape, (1,))
         self.assertEqual(env.state_space['object_qvel'].shape, (1,))
 
-    def test_reset_step(self):
+    def test_reset_step(self, _, env_cls):
         """Checks that resetting and stepping works."""
-        env = self.env_class()
+        env = env_cls()
         env.reset()
         env.step(env.action_space.sample())
 
 
 if __name__ == '__main__':
-    unittest.main()
+    absltest.main()

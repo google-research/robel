@@ -26,6 +26,7 @@ import argparse
 import collections
 import json
 import os
+import pickle
 import time
 from typing import Callable, Optional
 
@@ -141,13 +142,18 @@ def main():
         help=('The rendering mode. If provided, renders to a window. A render '
               'mode string can be passed here.'),
     )
+    parser.add_argument(
+        '--save_dir', help='The directory to save the paths to.')
     env_id, params, args = parse_env_args(parser)
 
     robel.set_env_params(env_id, params)
     env = gym.make(env_id)
     if args.seed is not None:
         env.seed(args.seed)
+    if args.episode_length is not None:
+        env = env.unwrapped
 
+    paths = []
     try:
         episode_num = 0
         for obs, reward, infos, renders, durations in do_rollouts(
@@ -162,8 +168,21 @@ def main():
             print('> Execution times: {}'.format(
                 json.dumps(durations, indent=2, sort_keys=True)))
             episode_num += 1
+
+            if args.save_dir:
+                paths.append(dict(
+                    observation=obs,
+                    reward=reward,
+                    info=infos,
+                ))
     finally:
         env.close()
+
+        if paths and args.save_dir:
+            os.makedirs(args.save_dir, exist_ok=True)
+            save_path = os.path.join(args.save_dir, 'paths.pkl')
+            with open(save_path, 'wb') as f:
+                pickle.dump(paths, f)
 
 
 if __name__ == '__main__':

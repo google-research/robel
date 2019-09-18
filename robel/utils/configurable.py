@@ -40,15 +40,19 @@ def set_env_params(env_id: str, params: Dict[str, Any]):
     """Sets the parameters for the given environment ID."""
     if env_id not in gym_registry.env_specs:
         raise ValueError('Unregistered environment ID: {}'.format(env_id))
-    env_constructor = gym_registry.env_specs[env_id]._entry_point
-    if not callable(env_constructor):
-        assert isinstance(env_constructor, str)
+    spec = gym_registry.env_specs[env_id]
+    # Fallback compatibility for older gym versions.
+    entry_point = getattr(spec, "entry_point",
+                          getattr(spec, "_entry_point", None))
+    assert entry_point is not None
+    if not callable(entry_point):
+        assert isinstance(entry_point, str)
         # Get the class handle of the entry-point string.
-        module_path, class_name = env_constructor.split(":")
+        module_path, class_name = entry_point.split(":")
         module = importlib.import_module(module_path)
-        env_constructor = getattr(module, class_name)
+        entry_point = getattr(module, class_name)
 
-    _ENV_PARAMS[env_constructor] = params
+    _ENV_PARAMS[entry_point] = params
 
 
 def configurable(pickleable: bool = False,

@@ -15,9 +15,9 @@
 """Mock SimScene for testing."""
 
 import contextlib
-from unittest import mock
 from typing import Iterable, Optional, Tuple
 
+from absl.testing.absltest import mock
 import numpy as np
 
 

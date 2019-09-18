@@ -108,7 +108,6 @@ class BaseDKittyStand(BaseDKittyUprightEnv, metaclass=abc.ABCMeta):
             falling_reward=falling_reward,
             **kwargs)
 
-        self.last_action = np.zeros(12)
         self._desired_pose = np.zeros(12)
         self._initial_pose = np.zeros(12)
 
@@ -149,7 +148,7 @@ class BaseDKittyStand(BaseDKittyUprightEnv, metaclass=abc.ABCMeta):
             ('root_angular_vel', torso_track_state.angular_vel),
             ('kitty_qpos', robot_state.qpos),
             ('kitty_qvel', robot_state.qvel),
-            ('last_action', self.last_action),
+            ('last_action', self._get_last_action()),
             ('pose_error', self._desired_pose - robot_state.qpos),
         ))
 

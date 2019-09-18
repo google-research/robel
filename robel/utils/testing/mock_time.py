@@ -14,7 +14,7 @@
 
 """Utilities to mock time-related methods."""
 
-from unittest import mock
+from absl.testing.absltest import mock
 
 
 class MockTime:

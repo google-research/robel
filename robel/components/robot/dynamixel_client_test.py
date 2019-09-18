@@ -14,13 +14,13 @@
 
 """Unit tests for DynamixelClient."""
 
-import unittest
+from absl.testing import absltest
 
 from robel.components.robot.dynamixel_client import DynamixelClient
 from robel.utils.testing.mock_dynamixel_sdk import patch_dynamixel
 
 
-class DynamixelClientTest(unittest.TestCase):
+class DynamixelClientTest(absltest.TestCase):
     """Unit test class for DynamixelClient."""
 
     @patch_dynamixel(test=[1, 2, 3, 4])
@@ -50,4 +50,4 @@ class DynamixelClientTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    absltest.main()

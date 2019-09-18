@@ -15,8 +15,9 @@
 """Tests for configurable."""
 
 import pickle
-import unittest
 import tempfile
+
+from absl.testing import absltest
 
 from robel.utils.configurable import configurable
 
@@ -43,7 +44,7 @@ class DummyWithConfigPickleable(object):
         self.c = c
 
 
-class TestConfigurable(unittest.TestCase):
+class TestConfigurable(absltest.TestCase):
     """Unit tests for configurable."""
 
     def setUp(self):
@@ -121,4 +122,4 @@ class TestConfigurable(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    absltest.main()

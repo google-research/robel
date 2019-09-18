@@ -19,27 +19,23 @@ The DClaw is tasked to match a pose defined by the environment.
 
 import abc
 import collections
-from typing import Any, Dict
+from typing import Any, Dict, Optional, Sequence
 
 import numpy as np
 
 from robel.components.robot.dynamixel_robot import DynamixelRobotState
 from robel.components.robot import RobotComponentBuilder, RobotState
 from robel.dclaw.base_env import BaseDClawEnv
+from robel.simulation.randomize import SimRandomizer
 from robel.utils.configurable import configurable
 from robel.utils.resources import get_asset_path
 
-DCLAW3_ASSET_PATH = 'robel-scenes/dclaw/dclaw3xh.xml'
-
-# Add overlay group to show desired position.
-OVERLAY_CONFIG = {
-    'groups': {
-        'overlay': {
-            'qpos_indices': range(9, 18),
-            'actuator_indices': []
-        }
-    }
-}
+# The observation keys that are concatenated as the environment observation.
+DEFAULT_OBSERVATION_KEYS = (
+    'qpos',
+    'last_action',
+    'qpos_error',
+)
 
 # The maximum velocity for the motion task.
 MOTION_VELOCITY_LIMIT = np.pi / 6  # 30deg/s
@@ -47,23 +43,28 @@ MOTION_VELOCITY_LIMIT = np.pi / 6  # 30deg/s
 # The error margin to the desired positions to consider as successful.
 SUCCESS_THRESHOLD = 10 * np.pi / 180
 
+DCLAW3_ASSET_PATH = 'robel-scenes/dclaw/dclaw3xh.xml'
+
 
 class BaseDClawPose(BaseDClawEnv, metaclass=abc.ABCMeta):
     """Shared logic for DClaw pose tasks."""
 
     def __init__(self,
                  asset_path: str = DCLAW3_ASSET_PATH,
-                 frame_skip: int = 40,
+                 observation_keys: Sequence[str] = DEFAULT_OBSERVATION_KEYS,
+                 frame_skip: int = 20,
                  **kwargs):
         """Initializes the environment.
 
         Args:
+            asset_path: The XML model file to load.
             observation_keys: The keys in `get_obs_dict` to concatenate as the
                 observations returned by `step` and `reset`.
             frame_skip: The number of simulation steps per environment step.
         """
         super().__init__(
             sim_model=get_asset_path(asset_path),
+            observation_keys=observation_keys,
             frame_skip=frame_skip,
             **kwargs)
 
@@ -99,6 +100,7 @@ class BaseDClawPose(BaseDClawEnv, metaclass=abc.ABCMeta):
         obs_dict = collections.OrderedDict((
             ('qpos', state.qpos),
             ('qvel', state.qvel),
+            ('last_action', self._get_last_action()),
             ('qpos_error', self._desired_pos - state.qpos),
         ))
         # Add hardware-specific state if present.
@@ -160,8 +162,8 @@ class BaseDClawPose(BaseDClawEnv, metaclass=abc.ABCMeta):
 
 
 @configurable(pickleable=True)
-class DClawPoseStill(BaseDClawPose):
-    """Track a still random initial and final pose."""
+class DClawPoseFixed(BaseDClawPose):
+    """Track a fixed random initial and final pose."""
 
     def _reset(self):
         self._initial_pos = self._make_random_pose()
@@ -171,8 +173,8 @@ class DClawPoseStill(BaseDClawPose):
 
 
 @configurable(pickleable=True)
-class DClawPoseMotion(BaseDClawPose):
-    """Track a moving pose."""
+class DClawPoseRandom(BaseDClawPose):
+    """Track a random moving pose."""
 
     def _reset(self):
         # Choose two poses to oscillate between.
@@ -204,3 +206,34 @@ class DClawPoseMotion(BaseDClawPose):
         result = super()._step(action)
         self._update_desired_pose()
         return result
+
+
+@configurable(pickleable=True)
+class DClawPoseRandomDynamics(DClawPoseRandom):
+    """Track a random moving pose.
+
+    The dynamics of the simulation are randomized each episode.
+    """
+
+    def __init__(self,
+                 *args,
+                 sim_observation_noise: Optional[float] = 0.05,
+                 **kwargs):
+        super().__init__(
+            *args, sim_observation_noise=sim_observation_noise, **kwargs)
+        self._randomizer = SimRandomizer(self)
+        self._dof_indices = (
+            self.robot.get_config('dclaw').qvel_indices.tolist())
+
+    def _reset(self):
+        # Randomize joint dynamics.
+        self._randomizer.randomize_dofs(
+            self._dof_indices,
+            damping_range=(0.005, 0.1),
+            friction_loss_range=(0.001, 0.005),
+        )
+        self._randomizer.randomize_actuators(
+            all_same=True,
+            kp_range=(1, 3),
+        )
+        super()._reset()

@@ -14,33 +14,32 @@
 
 """Unit tests for DKitty walk tasks."""
 
-import unittest
-
+from absl.testing import absltest
+from absl.testing import parameterized
 import gym
 import numpy as np
-from parameterized import parameterized_class
 
 from robel.dkitty.orient import (DKittyOrientFixed, DKittyOrientRandom,
                                       DKittyOrientRandomDynamics)
 # pylint: disable=no-member
 
 
-@parameterized_class(('env_id', 'env_class'), [
+@parameterized.parameters(
     ('DKittyOrientFixed-v0', DKittyOrientFixed),
     ('DKittyOrientRandom-v0', DKittyOrientRandom),
     ('DKittyOrientRandomDynamics-v0', DKittyOrientRandomDynamics),
-])
-class DKittyOrientTest(unittest.TestCase):
+)
+class DKittyOrientTest(absltest.TestCase):
     """Unit test class for RobotEnv."""
 
-    def test_gym_make(self):
+    def test_gym_make(self, env_id, env_cls):
         """Accesses the sim, model, and data properties."""
-        env = gym.make(self.env_id)
-        self.assertIsInstance(env.unwrapped, self.env_class)
+        env = gym.make(env_id)
+        self.assertIsInstance(env.unwrapped, env_cls)
 
-    def test_spaces(self):
+    def test_spaces(self, _, env_cls):
         """Checks the observation, action, and state spaces."""
-        env = self.env_class()
+        env = env_cls()
         observation_size = np.sum([
             3,  # root_pos
             3,  # root_euler
@@ -62,12 +61,12 @@ class DKittyOrientTest(unittest.TestCase):
         self.assertEqual(env.state_space['kitty_qpos'].shape, (12,))
         self.assertEqual(env.state_space['kitty_qvel'].shape, (12,))
 
-    def test_reset_step(self):
+    def test_reset_step(self, _, env_cls):
         """Checks that resetting and stepping works."""
-        env = self.env_class()
+        env = env_cls()
         env.reset()
         env.step(env.action_space.sample())
 
 
 if __name__ == '__main__':
-    unittest.main()
+    absltest.main()

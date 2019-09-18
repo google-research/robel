@@ -15,9 +15,9 @@
 """Unit tests for RobotEnv."""
 
 import collections
-import unittest
-from unittest import mock
 
+from absl.testing import absltest
+from absl.testing.absltest import mock
 import numpy as np
 
 from robel.robot_env import RobotEnv
@@ -48,7 +48,7 @@ class TestEnv(RobotEnv):
         return {}
 
 
-class RobotEnvTest(unittest.TestCase):
+class RobotEnvTest(absltest.TestCase):
     """Unit test class for RobotEnv."""
 
     # pylint: disable=protected-access
@@ -271,6 +271,20 @@ class RobotEnvTest(unittest.TestCase):
         np.testing.assert_array_equal(
             test.get_done({}, test_rewards), [False, False])
 
+    def test_last_action(self):
+        """Tests reading the last action."""
+        test = TestEnv(nq=3)
+        test.get_obs_dict = mock.Mock(
+            return_value=collections.OrderedDict([('o', [0])]))
+        test.get_reward_dict = mock.Mock(return_value={'r': np.array(0)})
+
+        self.assertIsNone(test.last_action)
+        np.testing.assert_array_equal(test._get_last_action(), [0, 0, 0])
+
+        test.step([1, 1, 1])
+        np.testing.assert_array_equal(test._get_last_action(), [1, 1, 1])
+        self.assertIs(test.last_action, test._get_last_action())
+
     def test_sticky_actions(self):
         """Tests sticky actions."""
         test = TestEnv(nq=3, sticky_action_probability=1)
@@ -287,4 +301,4 @@ class RobotEnvTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    absltest.main()

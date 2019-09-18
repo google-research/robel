@@ -14,8 +14,7 @@
 
 """Unit tests for RobotComponent and RobotGroupConfig."""
 
-import unittest
-
+from absl.testing import absltest
 import numpy as np
 
 from robel.components.robot.hardware_robot import (HardwareRobotComponent,
@@ -37,7 +36,7 @@ class DummyHardwareRobotComponent(HardwareRobotComponent):
         self._synchronize_timestep()
 
 
-class HardwareRobotComponentTest(unittest.TestCase):
+class HardwareRobotComponentTest(absltest.TestCase):
     """Unit test class for HardwareRobotComponent."""
 
     def test_calibrate_state(self):
@@ -91,4 +90,4 @@ class HardwareRobotComponentTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    absltest.main()

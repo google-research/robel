@@ -47,7 +47,7 @@ def get_data_files(package_dir, patterns):
 
 setuptools.setup(
     name="robel",
-    version="0.1.0",
+    version="0.1.1",
     license='Apache 2.0',
     description=('Robotics reinforcement learning benchmark tasks with '
                  'cost-effective robots.'),
@@ -65,7 +65,7 @@ setuptools.setup(
     extra_requires={
         'dev': get_requirements('requirements.dev.txt'),
     },
-    tests_require=['parameterized'],
+    tests_require=['absl-py'],
     python_requires='>=3.5.3',
     classifiers=[
         'Programming Language :: Python :: 3',

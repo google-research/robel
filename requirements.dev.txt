@@ -1,4 +1,4 @@
-parameterized
+absl-py
 pylint
 pytype
 yapf

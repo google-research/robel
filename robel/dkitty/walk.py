@@ -92,7 +92,6 @@ class BaseDKittyWalk(BaseDKittyUprightEnv, metaclass=abc.ABCMeta):
             falling_reward=falling_reward,
             **kwargs)
 
-        self.last_action = np.zeros(12)
         self._initial_target_pos = np.zeros(3)
         self._initial_heading_pos = None
 
@@ -172,7 +171,7 @@ class BaseDKittyWalk(BaseDKittyUprightEnv, metaclass=abc.ABCMeta):
             ('root_angular_vel', torso_track_state.angular_vel),
             ('kitty_qpos', robot_state.qpos),
             ('kitty_qvel', robot_state.qvel),
-            ('last_action', self.last_action),
+            ('last_action', self._get_last_action()),
             ('heading', heading),
             ('target_pos', target_xy),
             ('target_error', target_xy - kitty_xy),

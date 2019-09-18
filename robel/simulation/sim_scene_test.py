@@ -15,9 +15,10 @@
 """Unit tests for SimScene."""
 
 import contextlib
-import unittest
 import tempfile
 from typing import Generator
+
+from absl.testing import absltest
 
 from robel.simulation.sim_scene import SimBackend, SimScene
 
@@ -59,7 +60,7 @@ def test_model_file() -> Generator[str, None, None]:
 def mjpy_and_dm(fn):
     """Decorator that tests for both mujoco_py and dm_control."""
 
-    def test_fn(self: unittest.TestCase):
+    def test_fn(self: absltest.TestCase):
         with test_model_file() as test_file_path:
             with self.subTest('mujoco_py'):
                 fn(
@@ -75,7 +76,7 @@ def mjpy_and_dm(fn):
     return test_fn
 
 
-class SimSceneTest(unittest.TestCase):
+class SimSceneTest(absltest.TestCase):
     """Unit test class for SimScene."""
 
     @mjpy_and_dm
@@ -111,4 +112,4 @@ class SimSceneTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    absltest.main()

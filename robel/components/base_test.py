@@ -14,7 +14,7 @@
 
 """Unit tests for BaseComponent."""
 
-import unittest
+from absl.testing import absltest
 
 from robel.components.base import BaseComponent
 from robel.utils.testing.mock_sim_scene import MockSimScene
@@ -33,7 +33,7 @@ class DummyComponent(BaseComponent):
         return [0 for group in configs]
 
 
-class BaseComponentTest(unittest.TestCase):
+class BaseComponentTest(absltest.TestCase):
     """Unit test class for BaseComponent."""
 
     def test_get_state(self):
@@ -51,4 +51,4 @@ class BaseComponentTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    absltest.main()

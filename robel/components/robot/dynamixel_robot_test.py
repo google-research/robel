@@ -14,10 +14,10 @@
 
 """Unit tests for RobotComponent and RobotGroupConfig."""
 
-import unittest
-from unittest import mock
 from typing import Sequence
 
+from absl.testing import absltest
+from absl.testing.absltest import mock
 import numpy as np
 
 from robel.components.robot.dynamixel_robot import (
@@ -66,7 +66,7 @@ def patch_dynamixel(test_fn):
     return patched_fn
 
 
-class RobotComponentTest(unittest.TestCase):
+class RobotComponentTest(absltest.TestCase):
     """Unit test class for RobotComponent."""
 
     @patch_dynamixel
@@ -188,4 +188,4 @@ class RobotComponentTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    absltest.main()

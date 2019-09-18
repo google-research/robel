@@ -14,15 +14,14 @@
 
 """Tests for math_utils."""
 
-import unittest
-
+from absl.testing import absltest
 import numpy as np
 from transforms3d.euler import euler2quat, quat2euler
 
 from robel.utils.math_utils import average_quaternions, calculate_cosine
 
 
-class AverageQuaternionsTest(unittest.TestCase):
+class AverageQuaternionsTest(absltest.TestCase):
     """Tests for `average_quaternions`."""
 
     def test_identity(self):
@@ -46,7 +45,7 @@ class AverageQuaternionsTest(unittest.TestCase):
         np.testing.assert_array_almost_equal(result, [0, 0, 0])
 
 
-class CalculateCosineTest(unittest.TestCase):
+class CalculateCosineTest(absltest.TestCase):
     """Tests for `calculate_cosine`."""
 
     def test_identical(self):
@@ -92,4 +91,4 @@ class CalculateCosineTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    absltest.main()

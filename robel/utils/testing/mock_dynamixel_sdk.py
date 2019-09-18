@@ -16,10 +16,10 @@
 # DynamixelSDK conforms to a different naming convention.
 # pylint: disable=invalid-name
 
-from unittest import mock
 import sys
 from typing import Iterable
 
+from absl.testing.absltest import mock
 import numpy as np
 
 from robel.components.robot.dynamixel_client import ADDR_TORQUE_ENABLE

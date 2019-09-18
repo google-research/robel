@@ -87,7 +87,6 @@ class BaseDKittyOrient(BaseDKittyUprightEnv, metaclass=abc.ABCMeta):
             falling_reward=falling_reward,
             **kwargs)
 
-        self.last_action = np.zeros(12)
         self._initial_angle = 0
         self._target_angle = 0
 
@@ -163,7 +162,7 @@ class BaseDKittyOrient(BaseDKittyUprightEnv, metaclass=abc.ABCMeta):
             ('root_angular_vel', torso_track_state.angular_vel),
             ('kitty_qpos', robot_state.qpos),
             ('kitty_qvel', robot_state.qvel),
-            ('last_action', self.last_action),
+            ('last_action', self._get_last_action()),
             ('current_facing', current_facing),
             ('desired_facing', target_facing),
             ('angle_error', angle_error),

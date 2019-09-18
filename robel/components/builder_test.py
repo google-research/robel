@@ -14,7 +14,7 @@
 
 """Unit tests for ComponentBuilder."""
 
-import unittest
+from absl.testing import absltest
 
 from robel.components.builder import ComponentBuilder
 
@@ -26,7 +26,7 @@ class DummyBuilder(ComponentBuilder):
         """Builds the component."""
 
 
-class ComponentBuilderTest(unittest.TestCase):
+class ComponentBuilderTest(absltest.TestCase):
     """Unit test class for ComponentBuilder."""
 
     def test_add_group(self):
@@ -73,4 +73,4 @@ class ComponentBuilderTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    absltest.main()

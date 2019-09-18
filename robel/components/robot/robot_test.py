@@ -14,15 +14,14 @@
 
 """Unit tests for RobotComponent and RobotGroupConfig."""
 
-import unittest
-
+from absl.testing import absltest
 import numpy as np
 
 from robel.components.robot.robot import ControlMode, RobotComponent
 from robel.utils.testing.mock_sim_scene import MockSimScene
 
 
-class RobotComponentTest(unittest.TestCase):
+class RobotComponentTest(absltest.TestCase):
     """Unit test class for RobotComponent."""
 
     def test_get_state(self):
@@ -115,4 +114,4 @@ class RobotComponentTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    absltest.main()

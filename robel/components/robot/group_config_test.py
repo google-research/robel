@@ -14,15 +14,14 @@
 
 """Tests for RobotGroupConfig."""
 
-import unittest
-
+from absl.testing import absltest
 import numpy as np
 
 from robel.components.robot.group_config import RobotGroupConfig
 from robel.utils.testing.mock_sim_scene import MockSimScene
 
 
-class RobotGroupConfigTest(unittest.TestCase):
+class RobotGroupConfigTest(absltest.TestCase):
     """Unit tests for RobotGroupConfig."""
 
     def test_qpos_indices(self):
@@ -127,4 +126,4 @@ class RobotGroupConfigTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    absltest.main()
