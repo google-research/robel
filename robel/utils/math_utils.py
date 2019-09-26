@@ -15,12 +15,12 @@
 """Utility functions relating to math."""
 
 import logging
-from typing import Iterable
+from typing import Sequence
 
 import numpy as np
 
 
-def average_quaternions(quaternions: Iterable[np.ndarray]) -> np.ndarray:
+def average_quaternions(quaternions: Sequence[np.ndarray]) -> np.ndarray:
     """Returns the average of the given quaternions.
 
     Args:

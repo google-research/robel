@@ -14,6 +14,8 @@
 
 """Unit tests for BaseComponent."""
 
+from typing import Any
+
 from absl.testing import absltest
 
 from robel.components.base import BaseComponent
@@ -24,7 +26,8 @@ class DummyComponent(BaseComponent):
     """Mock component for testing BaseComponent."""
 
     def __init__(self, **kwargs):
-        super().__init__(sim_scene=MockSimScene(nq=1), **kwargs)
+        sim_scene = MockSimScene(nq=1)  # type: Any
+        super().__init__(sim_scene=sim_scene, **kwargs)
 
     def _process_group(self, **config_kwargs):
         return {}

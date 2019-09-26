@@ -16,8 +16,7 @@
 
 import abc
 import collections
-import importlib
-from typing import Any, Dict, Optional, NewType, Sequence, Union, Tuple
+from typing import Any, Dict, Optional, Sequence, Union, Tuple
 
 import gym
 from gym import spaces
@@ -33,15 +32,10 @@ DEFAULT_RENDER_SIZE = 480
 # The simulation backend to use by default.
 DEFAULT_SIM_BACKEND = SimBackend.MUJOCO_PY
 
-# Define helper types for observation, action and state.
-Observation = NewType('Observation', Any)
-Action = NewType('Action', Any)
-State = NewType('State', Any)
-
 
 def make_box_space(low: Union[float, Sequence[float]],
                    high: Union[float, Sequence[float]],
-                   shape: Optional[int] = None) -> gym.spaces.Box:
+                   shape: Optional[Tuple[int]] = None) -> gym.spaces.Box:
     """Returns a Box gym space."""
     # HACK: Fallback for gym 0.9.x
     # TODO(michaelahn): Consider whether we still need to support 0.9.x
@@ -209,7 +203,7 @@ class RobotEnv(gym.Env, metaclass=abc.ABCMeta):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def reset(self) -> Observation:
+    def reset(self) -> Any:
         """Resets the environment.
 
         Args:
@@ -233,7 +227,7 @@ class RobotEnv(gym.Env, metaclass=abc.ABCMeta):
 
         return self._get_obs(obs_dict)
 
-    def step(self, action: Action) -> Tuple[Observation, float, bool, Dict]:
+    def step(self, action: Any) -> Tuple[Any, float, bool, Dict]:
         """Runs one timestep of the environment with the given action.
 
         Subclasses must override 4 subcomponents of step:
@@ -417,11 +411,11 @@ class RobotEnv(gym.Env, metaclass=abc.ABCMeta):
         del obs_dict
         return np.zeros_like(next(iter(reward_dict.values())), dtype=bool)
 
-    def get_state(self) -> State:
+    def get_state(self) -> Any:
         """Returns the current state of the environment."""
         return (self.data.qpos.copy(), self.data.qvel.copy())
 
-    def set_state(self, state: State):
+    def set_state(self, state: Any):
         """Sets the state of the environment."""
         qpos, qvel = state
         self.data.qpos[:] = qpos
@@ -500,8 +494,7 @@ class RobotEnv(gym.Env, metaclass=abc.ABCMeta):
 
         return action
 
-    def _get_obs(self, obs_dict: Optional[Dict[str, np.ndarray]] = None
-                ) -> Observation:
+    def _get_obs(self, obs_dict: Optional[Dict[str, np.ndarray]] = None) -> Any:
         """Returns the current observation of the environment.
 
         This matches the environment's observation space.

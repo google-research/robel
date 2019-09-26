@@ -17,7 +17,7 @@
 import atexit
 import logging
 import time
-from typing import Iterable, Optional, Union, Tuple
+from typing import Optional, Sequence, Union, Tuple
 
 import numpy as np
 
@@ -81,7 +81,7 @@ class DynamixelClient:
     OPEN_CLIENTS = set()
 
     def __init__(self,
-                 motor_ids: Iterable[int],
+                 motor_ids: Sequence[int],
                  port: str = '/dev/ttyUSB0',
                  baudrate: int = 1000000,
                  lazy_connect: bool = False,
@@ -158,6 +158,7 @@ class DynamixelClient:
         self.set_torque_enabled(self.motor_ids, True)
 
     def disconnect(self):
+        """Disconnects from the Dynamixel device."""
         if not self.is_connected:
             return
         if self.port_handler.is_using:
@@ -170,7 +171,7 @@ class DynamixelClient:
             self.OPEN_CLIENTS.remove(self)
 
     def set_torque_enabled(self,
-                           motor_ids: Iterable[int],
+                           motor_ids: Sequence[int],
                            enabled: bool,
                            retries: int = -1,
                            retry_interval: float = 0.25):
@@ -203,7 +204,7 @@ class DynamixelClient:
         """Returns the current positions and velocities."""
         return self._pos_vel_cur_reader.read()
 
-    def write_desired_pos(self, motor_ids: Iterable[int],
+    def write_desired_pos(self, motor_ids: Sequence[int],
                           positions: np.ndarray):
         """Writes the given desired positions.
 
@@ -220,10 +221,10 @@ class DynamixelClient:
 
     def write_byte(
             self,
-            motor_ids: Iterable[int],
+            motor_ids: Sequence[int],
             value: int,
             address: int,
-    ) -> Iterable[int]:
+    ) -> Sequence[int]:
         """Writes a value to the motors.
 
         Args:
@@ -245,8 +246,8 @@ class DynamixelClient:
                 errored_ids.append(motor_id)
         return errored_ids
 
-    def sync_write(self, motor_ids: Iterable[int],
-                   values: Iterable[Union[int, float]], address: int,
+    def sync_write(self, motor_ids: Sequence[int],
+                   values: Sequence[Union[int, float]], address: int,
                    size: int):
         """Writes values to a group of motors.
 
@@ -307,7 +308,7 @@ class DynamixelClient:
             return False
         return True
 
-    def convert_to_unsigned(self, value: int, size: int) -> bytes:
+    def convert_to_unsigned(self, value: int, size: int) -> int:
         """Converts the given value to its unsigned representation."""
         if value < 0:
             max_value = (1 << (8 * size)) - 1
@@ -335,7 +336,7 @@ class DynamixelReader:
     This wraps a GroupBulkRead from the DynamixelSDK.
     """
 
-    def __init__(self, client: DynamixelClient, motor_ids: Iterable[int],
+    def __init__(self, client: DynamixelClient, motor_ids: Sequence[int],
                  address: int, size: int):
         """Initializes a new reader."""
         self.client = client
@@ -404,7 +405,7 @@ class DynamixelPosVelCurReader(DynamixelReader):
 
     def __init__(self,
                  client: DynamixelClient,
-                 motor_ids: Iterable[int],
+                 motor_ids: Sequence[int],
                  pos_scale: float = 1.0,
                  vel_scale: float = 1.0,
                  cur_scale: float = 1.0):

@@ -19,9 +19,22 @@ import os
 from typing import Any
 
 import mujoco_py
+from mujoco_py.builder import cymj, user_warning_raise_exception
 
 from robel.simulation.mjpy_renderer import MjPyRenderer
 from robel.simulation.sim_scene import SimScene
+
+
+# Custom handler for MuJoCo exceptions.
+def _mj_warning_fn(warn_data: bytes):
+    """Warning function override for mujoco_py."""
+    try:
+        user_warning_raise_exception(warn_data)
+    except mujoco_py.MujocoException as e:
+        logging.error('MuJoCo Exception: %s', str(e))
+
+
+cymj.set_warning_callback(_mj_warning_fn)
 
 
 class MjPySimScene(SimScene):

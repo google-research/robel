@@ -47,7 +47,6 @@ import numpy as np
 
 import robel
 from robel.scripts.utils import parse_env_args
-from robel.components.robot import DynamixelRobotComponent
 
 MIN_FRAME_TIME = 1.0 / 60.0
 
@@ -187,14 +186,14 @@ class PlayShell(cmd.Cmd):
         """Engages motors. This only affects hardware."""
         group_names = group_names.split()
         with self._env_lock:
-            if isinstance(self._env.robot, DynamixelRobotComponent):
+            if self._env.robot.is_hardware:
                 self._env.robot.set_motors_engaged(group_names, True)
 
     def do_disengage(self, group_names):
         """Disengages motors. This only affects hardware."""
         group_names = group_names.split()
         with self._env_lock:
-            if isinstance(self._env.robot, DynamixelRobotComponent):
+            if self._env.robot.is_hardware:
                 self._env.robot.set_motors_engaged(group_names, False)
 
     def emptyline(self):
@@ -261,9 +260,9 @@ class PlayShell(cmd.Cmd):
                 if self._do_random_actions:
                     self._action = self._env.action_space.sample()
                 if self._action is not None:
-                    obs, _, _, _ = self._env.step(self._action)
+                    self._env.step(self._action)
                 else:
-                    obs = self._env.get_obs_dict()
+                    self._env.get_obs_dict()
 
                 self._env.render()
                 # self._display_image_obs(obs)

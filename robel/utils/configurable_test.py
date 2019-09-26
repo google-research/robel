@@ -51,12 +51,14 @@ class TestConfigurable(absltest.TestCase):
         TEST_CONFIGS.clear()
 
     def test_instance(self):
+        """Tests default values."""
         d = DummyWithConfig()
         self.assertEqual(d.a, 1)
         self.assertEqual(d.b, 2)
         self.assertEqual(d.c, 3)
 
     def test_set_config(self):
+        """Tests setting a config values."""
         TEST_CONFIGS[DummyWithConfig] = {'a': 4, 'c': 5}
 
         d = DummyWithConfig()
@@ -65,6 +67,7 @@ class TestConfigurable(absltest.TestCase):
         self.assertEqual(d.c, 5)
 
     def test_set_config_kwargs(self):
+        """Tests overriding a config with kwargs."""
         TEST_CONFIGS[DummyWithConfig] = {'a': 4, 'c': 5}
 
         d = DummyWithConfig(a=7)
@@ -73,6 +76,7 @@ class TestConfigurable(absltest.TestCase):
         self.assertEqual(d.c, 5)
 
     def test_set_config_inheritance(self):
+        """Tests config values for a child class."""
         TEST_CONFIGS[ChildDummyWithConfig] = {'a': 4, 'c': 5}
 
         d1 = ChildDummyWithConfig()
@@ -86,6 +90,7 @@ class TestConfigurable(absltest.TestCase):
         self.assertEqual(d2.c, 3)
 
     def test_pickle(self):
+        """Tests loading from a pickled object."""
         TEST_CONFIGS[DummyWithConfigPickleable] = {'a': 4, 'c': 5}
 
         d = DummyWithConfigPickleable(b=8)
@@ -101,6 +106,7 @@ class TestConfigurable(absltest.TestCase):
         self.assertEqual(d2.c, 5)
 
     def test_pickle_override(self):
+        """Tests overriding serialized parameters."""
         TEST_CONFIGS[DummyWithConfigPickleable] = {'a': 4, 'c': 5}
 
         d = DummyWithConfigPickleable(c=1)

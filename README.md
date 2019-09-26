@@ -5,9 +5,10 @@ reinforcement learning environments for benchmarking reinforcement learning in
 the real world. It provides Gym-compliant environments that easily run in both
 simulation (for rapid prototyping) and on real hardware. ROBEL robots are robust
 and scalable - they have facilitated over 14000 hours (as of Aug'19) of
-real world training with various learning-based methods. Benchmarks using
+real-world training with various learning-based methods. Benchmarks using
 several learning-based methods are provided for ease of comparison and
-extensibility.
+extensibility. Refer to [ROBEL's webpage](http://roboticsbenchmarks.org) for
+full details.
 
 ## Robot Platforms
 
@@ -29,13 +30,13 @@ lower cost compared to many existing robotics research platforms:
 used with any reinforcement learning library that interfaces with Gym
 environments.
 2. **Simulated backends** -- ROBEL also includes simulated equivalents of the
-introduced benchmarks to facilitate the prototyping and debugging needs.
+introduced benchmarks to facilitate prototyping and debugging needs.
 Simulation backend is provided by [MuJoCo].
 3. **Hardware interface** -- ROBEL is built using Dynamixel motors and
 communicates with the hardware device through the [DynamixelSDK].
 4. **External tracking support** -- For D'Kitty environments, external tracking
 is supported through [OpenVR] tracking.
-5. **Open source design** -- The hardware design and build instructions are
+5. **Open-source design** -- The hardware design and build instructions are
 fully open-sourced and are available for anyone to build their own robots.
 
 [Gym]: https://gym.openai.com
@@ -47,10 +48,9 @@ fully open-sourced and are available for anyone to build their own robots.
 
 ## 1. Hardware assembly
 
-Please refer to the Hardware Guide for getting started with the ROBEL hardware
-platforms.
-
-TODO(michaelahn): Add hardware documentation link.
+Please refer to the
+[Hardware Guide](http://roboticsbenchmarks.org/getting-started) for getting
+started with the ROBEL hardware platforms.
 
 ## 2. Software installation
 
@@ -123,9 +123,9 @@ python -m robel.scripts.rollout -e DClawTurnFixed-v0 --render
 
 | Task       | Description                                   |
 | ---------- | --------------------------------------------- |
-| **Stand**  | Stand up from an initial joint configuration. |
-| **Orient** | Turn to face a specified angle.               |
-| **Walk**   | Walk to a world position.                     |
+| **Stand**  | Stand upright.                                |
+| **Orient** | Align heading with a target.                  |
+| **Walk**   | Walk to a target location.                    |
 
 ## Contributing
 
@@ -135,7 +135,16 @@ on how to contribute.
 
 ## Citation
 
-TODO(michaelahn): Add arxiv reference.
+```
+@misc{ahn2019robel,
+    title={ROBEL: Robotics Benchmarks for Learning with Low-Cost Robots},
+    author={Michael Ahn and Henry Zhu and Kristian Hartikainen and Hugo Ponte and Abhishek Gupta and Sergey Levine and Vikash Kumar},
+    year={2019},
+    eprint={1909.11639},
+    archivePrefix={arXiv},
+    primaryClass={cs.RO}
+}
+```
 
 ## Disclaimer
 

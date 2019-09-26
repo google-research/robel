@@ -60,7 +60,6 @@ class EpisodeLogger:
             data[info_key + '-mean-mean'] = np.mean(info_values)
 
         self.write_dict(data)
-        print('[{}] Episode : {}'.format(self._episode_num, total_reward))
         self._episode_num += 1
 
     def write_dict(self, data: Dict[str, Any]):

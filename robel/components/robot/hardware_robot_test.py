@@ -14,6 +14,8 @@
 
 """Unit tests for RobotComponent and RobotGroupConfig."""
 
+from typing import Any
+
 from absl.testing import absltest
 import numpy as np
 
@@ -41,8 +43,9 @@ class HardwareRobotComponentTest(absltest.TestCase):
 
     def test_calibrate_state(self):
         """Converts a state to component space."""
+        sim_scene = MockSimScene(nq=1)  # type: Any
         robot = DummyHardwareRobotComponent(
-            MockSimScene(nq=1),
+            sim_scene,
             groups={
                 'a': {
                     'calib_scale': [0.5, -1, 1],
@@ -57,8 +60,9 @@ class HardwareRobotComponentTest(absltest.TestCase):
 
     def test_decalibrate_qpos(self):
         """Converts a component state qpos to hardware space."""
+        sim_scene = MockSimScene(nq=1)  # type: Any
         robot = DummyHardwareRobotComponent(
-            MockSimScene(nq=1),
+            sim_scene,
             groups={
                 'a': {
                     'calib_scale': [0.5, -1, 1],
@@ -73,8 +77,8 @@ class HardwareRobotComponentTest(absltest.TestCase):
         with patch_time(
                 'robel.components.robot.hardware_robot.time',
                 initial_time=0) as mock_time:
-            robot = DummyHardwareRobotComponent(
-                MockSimScene(nq=1, step_duration=0.5), groups={})
+            sim_scene = MockSimScene(nq=1, step_duration=0.5)  # type: Any
+            robot = DummyHardwareRobotComponent(sim_scene, groups={})
 
             self.assertEqual(robot.time, 0)
             robot.do_timestep()

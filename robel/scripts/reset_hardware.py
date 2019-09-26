@@ -26,7 +26,6 @@ import time
 import gym
 
 import robel
-from robel.components.robot import DynamixelRobotComponent
 from robel.scripts.utils import parse_env_args
 
 
@@ -47,7 +46,7 @@ def main():
     # Create the environment and get the robot component.
     robel.set_env_params(env_id, params)
     env = gym.make(env_id).unwrapped
-    assert isinstance(env.robot, DynamixelRobotComponent)
+    assert env.robot.is_hardware
 
     for i in range(args.num_repeats):
         print('Starting reset #{}'.format(i))

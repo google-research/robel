@@ -14,6 +14,8 @@
 
 """Tests for RobotGroupConfig."""
 
+from typing import Any
+
 from absl.testing import absltest
 import numpy as np
 
@@ -26,7 +28,7 @@ class RobotGroupConfigTest(absltest.TestCase):
 
     def test_qpos_indices(self):
         """Checks defaults when nq == nv == nu."""
-        sim_scene = MockSimScene(nq=5, ctrl_range=(-1, 1))
+        sim_scene = MockSimScene(nq=5, ctrl_range=(-1, 1))  # type: Any
         config = RobotGroupConfig(sim_scene, qpos_indices=range(5))
         result = np.array([0, 1, 2, 3, 4], dtype=int)
 
@@ -39,7 +41,7 @@ class RobotGroupConfigTest(absltest.TestCase):
 
     def test_qpos_out_of_range(self):
         """Ensures error when qpos indices are out of bounds."""
-        sim_scene = MockSimScene(nq=3)
+        sim_scene = MockSimScene(nq=3)  # type: Any
         with self.assertRaises(AssertionError):
             RobotGroupConfig(sim_scene, qpos_indices=[3])
         with self.assertRaises(AssertionError):
@@ -47,7 +49,7 @@ class RobotGroupConfigTest(absltest.TestCase):
 
     def test_qvel_indices(self):
         """Checks defaults when nq == nu != nv."""
-        sim_scene = MockSimScene(nq=3, nv=5)
+        sim_scene = MockSimScene(nq=3, nv=5)  # type: Any
         config = RobotGroupConfig(
             sim_scene, qpos_indices=[-1], qvel_indices=[3, 4])
 
@@ -57,7 +59,7 @@ class RobotGroupConfigTest(absltest.TestCase):
 
     def test_qvel_out_of_range(self):
         """Ensures error when qvel indices are out of bounds."""
-        sim_scene = MockSimScene(nq=1, nv=3)
+        sim_scene = MockSimScene(nq=1, nv=3)  # type: Any
         with self.assertRaises(AssertionError):
             RobotGroupConfig(sim_scene, qvel_indices=[3])
         with self.assertRaises(AssertionError):
@@ -65,7 +67,7 @@ class RobotGroupConfigTest(absltest.TestCase):
 
     def test_qpos_range(self):
         """Checks presence of qpos_range when provided."""
-        sim_scene = MockSimScene(nq=2)
+        sim_scene = MockSimScene(nq=2)  # type: Any
         config = RobotGroupConfig(
             sim_scene, qpos_indices=[0, 1], qpos_range=[(0, 1)] * 2)
 
@@ -74,7 +76,7 @@ class RobotGroupConfigTest(absltest.TestCase):
 
     def test_qpos_invalid_range(self):
         """Ensures error when invalid qpos range is given."""
-        sim_scene = MockSimScene(nq=2)
+        sim_scene = MockSimScene(nq=2)  # type: Any
         with self.assertRaises(AssertionError):
             RobotGroupConfig(
                 sim_scene, qpos_indices=[0, 1], qpos_range=[(0, 1)])
@@ -83,7 +85,7 @@ class RobotGroupConfigTest(absltest.TestCase):
 
     def test_qvel_range(self):
         """Checks presence of qvel_range when provided."""
-        sim_scene = MockSimScene(nq=2)
+        sim_scene = MockSimScene(nq=2)  # type: Any
         config = RobotGroupConfig(
             sim_scene,
             qpos_indices=[0],
@@ -95,7 +97,7 @@ class RobotGroupConfigTest(absltest.TestCase):
 
     def test_qvel_invalid_range(self):
         """Ensures error when invalid qvel range is given."""
-        sim_scene = MockSimScene(nq=2, nv=3)
+        sim_scene = MockSimScene(nq=2, nv=3)  # type: Any
         with self.assertRaises(AssertionError):
             RobotGroupConfig(
                 sim_scene, qvel_indices=[0, 2], qvel_range=[(-1, 1)] * 3)
@@ -104,7 +106,7 @@ class RobotGroupConfigTest(absltest.TestCase):
 
     def test_actuator_range(self):
         """Checks presence of actuator_range when provided."""
-        sim_scene = MockSimScene(nq=2, nu=3)
+        sim_scene = MockSimScene(nq=2, nu=3)  # type: Any
         config = RobotGroupConfig(
             sim_scene,
             qpos_indices=[0, 1],
@@ -119,7 +121,7 @@ class RobotGroupConfigTest(absltest.TestCase):
 
     def test_actuator_range_default(self):
         """Checks that actuator_range uses the simulation range by default."""
-        sim_scene = MockSimScene(nq=2)
+        sim_scene = MockSimScene(nq=2)  # type: Any
         config = RobotGroupConfig(sim_scene, qpos_indices=[0, 1])
 
         np.testing.assert_array_equal(config.actuator_range, [(-1, 1)] * 2)

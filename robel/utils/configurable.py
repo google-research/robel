@@ -77,6 +77,7 @@ def configurable(pickleable: bool = False,
         config_cache: The dictionary of stored environment parameters to use.
             If not explicitly provided, uses the default global dictionary.
     """
+    # pylint: disable=protected-access,invalid-name
     if config_cache is None:
         config_cache = _ENV_PARAMS
 
@@ -132,4 +133,5 @@ def configurable(pickleable: bool = False,
 
         return cls
 
+    # pylint: enable=protected-access,invalid-name
     return cls_decorator

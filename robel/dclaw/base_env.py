@@ -16,7 +16,7 @@
 
 import abc
 import collections
-from typing import Dict, Optional, Sequence
+from typing import Dict, Optional, Sequence, Union
 
 import gym
 import numpy as np
@@ -214,12 +214,13 @@ class BaseDClawObjectEnv(BaseDClawEnv, metaclass=abc.ABCMeta):
         if self._use_guide and self._device_path:
             builder.update_group('guide', motor_ids=[60], use_raw_actions=True)
 
-    def _reset_dclaw_and_object(self,
-                                claw_pos: Optional[Sequence[float]] = None,
-                                claw_vel: Optional[Sequence[float]] = None,
-                                object_pos: Optional[Sequence[float]] = None,
-                                object_vel: Optional[Sequence[float]] = None,
-                                guide_pos: Optional[Sequence[float]] = None):
+    def _reset_dclaw_and_object(
+            self,
+            claw_pos: Optional[Sequence[float]] = None,
+            claw_vel: Optional[Sequence[float]] = None,
+            object_pos: Optional[Union[float, Sequence[float]]] = None,
+            object_vel: Optional[Union[float, Sequence[float]]] = None,
+            guide_pos: Optional[Union[float, Sequence[float]]] = None):
         """Reset procedure for DClaw robots that manipulate objects.
 
         Args:

@@ -17,7 +17,7 @@
 Example usage:
 python -m robel.scripts.enjoy_mjrl --device /dev/ttyUSB0
 
-This runs the DClawTurnRandom-v0 environment by default. To run other
+This runs the DClawTurnFixed-v0 environment by default. To run other
 environments, pass in the environment name with `-e/--env_name`
 
 python -m robel.scripts.enjoy_mjrl \
@@ -28,97 +28,32 @@ python -m robel.scripts.enjoy_mjrl \
 import argparse
 import os
 import pickle
-from typing import Optional
 
-import gym
-from mjrl.utils.gym_env import GymEnv
-try:
-    from mjrl.samplers.core import do_rollout
-except ImportError:
-    from mjrl.samplers.base_sampler import do_rollout
-
-import robel
-from robel.scripts.utils import EpisodeLogger, parse_env_args
+from robel.scripts.rollout import rollout_script
 
 POLICY_DIR = os.path.join(
     os.path.abspath(os.path.dirname(__file__)), 'data/mjrl')
 
-DEFAULT_ENV_NAME = 'DKittyWalkFixedOld-v0'
 DEFAULT_POLICY_FORMAT = os.path.join(POLICY_DIR, '{}-policy.pkl')
-DEFAULT_EPISODE_COUNT = 10
 
 
-class RenderingEnvWrapper:
-    """Calls render every step."""
-
-    def __init__(self, env: gym.Env, render_mode: Optional[str] = None):
-        """Initializes the wrapper."""
-        self._env = env
-        self._render_mode = render_mode
-
-    def step(self, action):
-        result = self._env.step(action)
-        self.env.render(self._render_mode)
-        return result
-
-    def __getattr__(self, name: str):
-        return getattr(self._env, name)
-
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '-o',
-        '--output',
-        default='output',
-        help=('The directory to save job data to.'))
-    parser.add_argument(
-        '-p',
-        '--policy',
-        help='The path to the pickled softlearning policy to load.')
-    parser.add_argument(
-        '-n',
-        '--num_episodes',
-        default=DEFAULT_EPISODE_COUNT,
-        type=int,
-        help='The number of episodes the evaluate.')
-    parser.add_argument(
-        '-r',
-        '--render',
-        nargs='?',
-        const='human',
-        default=None,
-        choices=['human', 'rgb_array'],
-        help='The render mode for the policy.')
-    env_name, env_params, args = parse_env_args(
-        parser, default_env_name=DEFAULT_ENV_NAME)
-
-    if not os.path.exists(args.output):
-        os.makedirs(args.output, exist_ok=True)
-
-    # Create the environment.
-    robel.set_env_params(env_name, env_params)
-    env = GymEnv(env_name)
-    if args.render:
-        render_env = RenderingEnvWrapper(env, args.render)
-        env = lambda: render_env
-
+def policy_factory(args: argparse.Namespace):
+    """Creates the policy."""
     # Get default policy path from the environment name.
     policy_path = args.policy
     if not policy_path:
-        policy_path = DEFAULT_POLICY_FORMAT.format(env_name)
+        policy_path = DEFAULT_POLICY_FORMAT.format(args.env_id)
 
-    # load policy
+    # Load the policy
     with open(policy_path, 'rb') as f:
         policy = pickle.load(f)
 
-    csv_path = os.path.join(args.output, '{}-results.csv'.format(env_name))
-    with EpisodeLogger(csv_path) as logger:
-        paths = do_rollout(args.num_episodes, env=env, policy=policy)
-        for path in paths:
-            logger.log_path(
-                path, reward_key='rewards', env_info_key='env_infos')
+    def policy_fn(obs):
+        _, info = policy.get_action(obs)
+        return info['evaluation']
+
+    return policy_fn
 
 
 if __name__ == '__main__':
-    main()
+    rollout_script(policy_factory=policy_factory, add_policy_arg=True)

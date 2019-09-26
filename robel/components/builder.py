@@ -21,7 +21,7 @@ from typing import List
 from robel.components.base import BaseComponent
 
 
-class ComponentBuilder:
+class ComponentBuilder(metaclass=abc.ABCMeta):
     """Base class for a component configuration.
 
     This wraps a dictionary of parameters that is used to initialize a

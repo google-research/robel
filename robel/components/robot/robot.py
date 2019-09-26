@@ -253,8 +253,8 @@ class RobotComponent(BaseComponent):
                     and config.qvel_range is not None):
                 # Calculate the desired velocity using the current position.
                 cur_pos = self.sim_scene.data.qpos[config.qpos_indices]
-                desired_vel = ((action - cur_pos) /
-                               self.sim_scene.step_duration)
+                desired_vel = (
+                    (action - cur_pos) / self.sim_scene.step_duration)
                 # Clip with the velocity bounds.
                 desired_vel = np.clip(desired_vel, config.qvel_range[:, 0],
                                       config.qvel_range[:, 1])

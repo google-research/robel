@@ -15,7 +15,6 @@
 """Tests for resources."""
 
 from absl.testing import absltest
-from absl.testing.absltest import mock
 
 from robel.utils.resources import AssetBundle
 

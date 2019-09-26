@@ -16,8 +16,6 @@
 
 from robel.components.builder import ComponentBuilder
 from robel.components.robot.dynamixel_utils import CalibrationMap
-from robel.components.robot.dynamixel_robot import DynamixelRobotComponent
-from robel.components.robot.robot import RobotComponent
 
 
 class RobotComponentBuilder(ComponentBuilder):
@@ -33,11 +31,14 @@ class RobotComponentBuilder(ComponentBuilder):
         if self._dxl_device_path:
             if self._calibration_map is not None:
                 self._calibration_map.update_group_configs(self.group_configs)
+            from robel.components.robot.dynamixel_robot import (
+                DynamixelRobotComponent)
             return DynamixelRobotComponent(
                 *args,
                 groups=self.group_configs,
                 device_path=self._dxl_device_path,
                 **kwargs)
+        from robel.components.robot.robot import RobotComponent
         return RobotComponent(*args, groups=self.group_configs, **kwargs)
 
     def set_dynamixel_device_path(self, device_path: str):

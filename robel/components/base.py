@@ -20,15 +20,15 @@ A Component provides a unified API between simulation and hardware.
 import abc
 import logging
 import sys
-from typing import Any, Dict, NewType, Optional, Sequence, Union
+from typing import Any, Dict, Optional, Sequence, Union
 
 import numpy as np
 
 from robel.simulation.sim_scene import SimScene
 
 # Type definition for a group configuration.
-GroupConfig = NewType('GroupConfig', Any)
-GroupState = NewType('GroupState', Any)
+GroupConfig = Any  # pylint: disable=invalid-name
+GroupState = Any  # pylint: disable=invalid-name
 
 
 class BaseComponent(abc.ABC):

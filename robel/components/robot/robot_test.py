@@ -14,6 +14,8 @@
 
 """Unit tests for RobotComponent and RobotGroupConfig."""
 
+from typing import Any
+
 from absl.testing import absltest
 import numpy as np
 
@@ -26,7 +28,7 @@ class RobotComponentTest(absltest.TestCase):
 
     def test_get_state(self):
         """Tests querying the state of multiple groups."""
-        sim_scene = MockSimScene(nq=10)
+        sim_scene = MockSimScene(nq=10)  # type: Any
         sim_scene.data.qpos[:] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         sim_scene.data.qvel[:] = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
         robot = RobotComponent(
@@ -48,7 +50,7 @@ class RobotComponentTest(absltest.TestCase):
 
     def test_step(self):
         """Tests stepping with an action for multiple groups."""
-        sim_scene = MockSimScene(nq=10, ctrl_range=[-1, 1])
+        sim_scene = MockSimScene(nq=10, ctrl_range=[-1, 1])  # type: Any
         robot = RobotComponent(
             sim_scene,
             groups={
@@ -70,7 +72,7 @@ class RobotComponentTest(absltest.TestCase):
 
     def test_step_denormalize(self):
         """Tests denormalizing the actions to the sim control range."""
-        sim_scene = MockSimScene(nq=5, ctrl_range=[0, 10])
+        sim_scene = MockSimScene(nq=5, ctrl_range=[0, 10])  # type: Any
         robot = RobotComponent(
             sim_scene, groups={'a': {
                 'qpos_indices': [0, 1, 2, 3, 4],
@@ -82,7 +84,7 @@ class RobotComponentTest(absltest.TestCase):
 
     def test_step_position_control_bounds(self):
         """Tests action clamping when doing position control."""
-        sim_scene = MockSimScene(nq=5, ctrl_range=[-1, 1])
+        sim_scene = MockSimScene(nq=5, ctrl_range=[-1, 1])  # type: Any
         sim_scene.data.qpos[:] = [-0.4, -0.2, 0, 0.2, 0.4]
         robot = RobotComponent(
             sim_scene,
@@ -99,7 +101,7 @@ class RobotComponentTest(absltest.TestCase):
 
     def test_step_velocity_control_bounds(self):
         """Tests action clamping when doing velocity control."""
-        sim_scene = MockSimScene(nq=3, ctrl_range=[-10, 10])
+        sim_scene = MockSimScene(nq=3, ctrl_range=[-10, 10])  # type: Any
         robot = RobotComponent(
             sim_scene,
             groups={

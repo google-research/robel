@@ -14,7 +14,7 @@
 
 """Unit tests for RobotComponent and RobotGroupConfig."""
 
-from typing import Sequence
+from typing import Any, Sequence
 
 from absl.testing import absltest
 from absl.testing.absltest import mock
@@ -72,7 +72,7 @@ class RobotComponentTest(absltest.TestCase):
     @patch_dynamixel
     def test_get_state(self):
         """Tests querying the state of multiple groups."""
-        sim_scene = MockSimScene(nq=10)
+        sim_scene = MockSimScene(nq=10)  # type: Any
         robot = DynamixelRobotComponent(
             sim_scene,
             groups={
@@ -107,7 +107,7 @@ class RobotComponentTest(absltest.TestCase):
     @patch_dynamixel
     def test_step(self):
         """Tests stepping with an action for multiple groups."""
-        sim_scene = MockSimScene(nq=10, ctrl_range=[-1, 1])
+        sim_scene = MockSimScene(nq=10, ctrl_range=[-1, 1])  # type: Any
         robot = DynamixelRobotComponent(
             sim_scene,
             groups={
@@ -128,14 +128,14 @@ class RobotComponentTest(absltest.TestCase):
                 'a': np.array([.2, .4, .6]),
                 'b': np.array([.1, .3]),
             })
-        dxl = DynamixelRobotComponent.DEVICE_CLIENTS['test']
+        dxl = DynamixelRobotComponent.DEVICE_CLIENTS['test']  # type: Any
 
         np.testing.assert_allclose(dxl.qpos, [.9, .8, .7])
 
     @patch_dynamixel
     def test_set_state(self):
         """Tests stepping with an action for multiple groups."""
-        sim_scene = MockSimScene(nq=10)
+        sim_scene = MockSimScene(nq=10)  # type: Any
         robot = DynamixelRobotComponent(
             sim_scene,
             groups={
@@ -151,14 +151,14 @@ class RobotComponentTest(absltest.TestCase):
             robot.set_state({
                 'a': RobotState(qpos=np.array([1, 2, 3])),
             })
-        dxl = DynamixelRobotComponent.DEVICE_CLIENTS['test']
+        dxl = DynamixelRobotComponent.DEVICE_CLIENTS['test']  # type: Any
 
         np.testing.assert_allclose(dxl.qpos, [2, 3, 3.5])
 
     @patch_dynamixel
     def test_engage_motors(self):
         """Tests engaging/disengaging subsets of motors."""
-        sim_scene = MockSimScene(nq=10)
+        sim_scene = MockSimScene(nq=10)  # type: Any
         robot = DynamixelRobotComponent(
             sim_scene,
             groups={
@@ -173,7 +173,7 @@ class RobotComponentTest(absltest.TestCase):
                 }
             },
             device_path='test')
-        dxl = DynamixelRobotComponent.DEVICE_CLIENTS['test']
+        dxl = DynamixelRobotComponent.DEVICE_CLIENTS['test']  # type: Any
         np.testing.assert_array_equal(dxl.enabled, [False] * 6)
 
         robot.set_motors_engaged('a', True)

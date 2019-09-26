@@ -19,7 +19,7 @@ import logging
 
 from transforms3d.euler import euler2quat
 
-from robel.components.tracking.virtual_reality import VrClient
+from robel.components.tracking.virtual_reality.client import VrClient
 
 INTRODUCTION = """Interactive shell for using the OpenVR client.
 

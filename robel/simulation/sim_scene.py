@@ -45,11 +45,11 @@ class SimScene(metaclass=abc.ABCMeta):
         """
         backend = SimBackend(backend)
         if backend == SimBackend.MUJOCO_PY:
-            from robel.simulation.mjpy_sim_scene import MjPySimScene
-            return MjPySimScene(*args, **kwargs)
+            from robel.simulation import mjpy_sim_scene  # type: ignore
+            return mjpy_sim_scene.MjPySimScene(*args, **kwargs)
         elif backend == SimBackend.DM_CONTROL:
-            from robel.simulation.dm_sim_scene import DMSimScene
-            return DMSimScene(*args, **kwargs)
+            from robel.simulation import dm_sim_scene  # type: ignore
+            return dm_sim_scene.DMSimScene(*args, **kwargs)
         else:
             raise NotImplementedError(backend)
 
