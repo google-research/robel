@@ -61,6 +61,15 @@ Download MuJoCo Pro 2.00 from the
 to `~/.mujoco/mujoco200`. Ensure your MuJoCo license key is placed at
 `~/.mujoco/mjkey.txt`.
 
+Add the following line to your `~/.bashrc` (or equivalent) in order for
+`mujoco_py` to install properly:
+
+```bash
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/.mujoco/mujoco200/bin
+```
+
+Run `source ~/.bashrc` afterwards.
+
 #### 2.2 ROBEL
 
 ROBEL requires Python 3.5 or higher. You can install ROBEL by running:
@@ -71,6 +80,13 @@ pip install robel
 
 We recommend doing this in a `virtualenv` or a Conda environment to avoid
 interfering with system dependencies or existing packages.
+
+Alternatively, you can install directly from the repository by running:
+
+```bash
+git clone --recurse-submodules https://github.com/google-research/robel.git
+pip install -e robel/
+```
 
 To run on hardware, additionally install the [DynamixelSDK] Python API:
 
