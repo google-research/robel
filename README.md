@@ -91,7 +91,7 @@ pip install -e robel/
 To run on hardware, additionally install the [DynamixelSDK] Python API:
 
 ```bash
-pip install dynamixel_sdk @ https://github.com/ROBOTIS-GIT/DynamixelSDK/archive/3.7.0.zip#subdirectory=python
+pip install git+https://github.com/ROBOTIS-GIT/DynamixelSDK.git#subdirectory=python
 ```
 
 #### 2.3 Example Usage
