@@ -29,8 +29,15 @@ from robel.utils.configurable import configurable
 class BaseDClawScrew(BaseDClawTurn):
     """Shared logic for DClaw screw tasks."""
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, success_threshold: float = 0.2, **kwargs):
+        """Initializes the environment.
+
+        Args:
+            success_threshold: The difference threshold (in radians) of the
+                object position and the goal position within which we consider
+                as a sucesss.
+        """
+        super().__init__(success_threshold=success_threshold, **kwargs)
 
         # The target velocity is set during `_reset`.
         self._target_object_vel = 0

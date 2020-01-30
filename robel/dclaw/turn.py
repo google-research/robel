@@ -53,6 +53,7 @@ class BaseDClawTurn(BaseDClawObjectEnv, metaclass=abc.ABCMeta):
                  observation_keys: Sequence[str] = DEFAULT_OBSERVATION_KEYS,
                  frame_skip: int = 40,
                  interactive: bool = False,
+                 success_threshold: float = 0.1,
                  **kwargs):
         """Initializes the environment.
 
@@ -63,6 +64,9 @@ class BaseDClawTurn(BaseDClawObjectEnv, metaclass=abc.ABCMeta):
             frame_skip: The number of simulation steps per environment step.
             interactive: If True, allows the hardware guide motor to freely
                 rotate and its current angle is used as the goal.
+            success_threshold: The difference threshold (in radians) of the
+                object position and the goal position within which we consider
+                as a sucesss.
         """
         super().__init__(
             sim_model=get_asset_path(asset_path),
@@ -71,6 +75,7 @@ class BaseDClawTurn(BaseDClawObjectEnv, metaclass=abc.ABCMeta):
             **kwargs)
 
         self._interactive = interactive
+        self._success_threshold = success_threshold
         self._desired_claw_pos = RESET_POSE
 
         self._target_bid = self.model.body_name2id('target')
@@ -164,9 +169,10 @@ class BaseDClawTurn(BaseDClawObjectEnv, metaclass=abc.ABCMeta):
             reward_dict: Dict[str, np.ndarray],
     ) -> Dict[str, np.ndarray]:
         """Returns a standardized measure of success for the environment."""
+        target_dist = np.abs(obs_dict['target_error'])
         score_dict = collections.OrderedDict((
-            ('points', 1.0 - np.abs(obs_dict['target_error']) / np.pi),
-            ('success', reward_dict['bonus_big'] > 0.0),
+            ('points', 1.0 - target_dist / np.pi),
+            ('success', target_dist < self._success_threshold),
         ))
         score_dict.update(
             self._get_safety_scores(

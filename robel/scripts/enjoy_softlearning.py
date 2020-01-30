@@ -36,7 +36,7 @@ from robel.scripts.rollout import rollout_script
 POLICY_DIR = os.path.join(
     os.path.abspath(os.path.dirname(__file__)), 'data/softlearning')
 
-DEFAULT_POLICY_FORMAT = os.path.join(POLICY_DIR, '{}-policy.pkl')
+DEFAULT_POLICY_FORMAT = os.path.join(POLICY_DIR, '{}.pkl')
 
 
 def policy_factory(args: argparse.Namespace):
@@ -44,7 +44,7 @@ def policy_factory(args: argparse.Namespace):
     # Get default policy path from the environment name.
     policy_path = args.policy
     if not policy_path:
-        policy_path = DEFAULT_POLICY_FORMAT.format(args.env_id)
+        policy_path = DEFAULT_POLICY_FORMAT.format(args.env_name)
 
     # Load the policy
     with open(policy_path, 'rb') as f:

@@ -12,7 +12,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tracking component module."""
-
-from .tracker import TrackerState
-from .builder import TrackerComponentBuilder, TrackerType

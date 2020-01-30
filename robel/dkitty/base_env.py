@@ -22,9 +22,12 @@ import numpy as np
 
 from robel.components.robot import RobotComponentBuilder, RobotState
 from robel.components.robot.dynamixel_utils import CalibrationMap
-from robel.components.tracking import TrackerComponentBuilder, TrackerState
-from robel.dkitty import scripted_reset
+from robel.components.tracking import (TrackerComponentBuilder,
+                                            TrackerState, TrackerType)
+from robel.dkitty.utils.manual_reset import ManualAutoDKittyResetProcedure
+from robel.dkitty.utils.scripted_reset import ScriptedDKittyResetProcedure
 from robel.robot_env import make_box_space, RobotEnv
+from robel.utils.reset_procedure import ManualResetProcedure
 
 # Convenience constants.
 PI = np.pi
@@ -57,8 +60,9 @@ class BaseDKittyEnv(RobotEnv, metaclass=abc.ABCMeta):
                  *args,
                  device_path: Optional[str] = None,
                  sim_observation_noise: Optional[float] = None,
-                 manual_reset: bool = False,
+                 reset_type: Optional[str] = None,
                  plot_tracking: bool = False,
+                 phasespace_server: Optional[str] = None,
                  **kwargs):
         """Initializes the environment.
 
@@ -71,20 +75,40 @@ class BaseDKittyEnv(RobotEnv, metaclass=abc.ABCMeta):
             plot_tracking: If True, displays a plot that shows the tracked
                 positions. NOTE: Currently this causes the environment to run
                 more slowly.
+            phasespace_server: The PhaseSpace server to connect to. If given,
+                PhaseSpace is used as the tracking provider instead of OpenVR.
         """
         super().__init__(*args, **kwargs)
         self._device_path = device_path
         self._sim_observation_noise = sim_observation_noise
-        self._manual_reset = manual_reset
 
-        # Create the robot component.
+        # Configure the robot component.
         robot_builder = RobotComponentBuilder()
         self._configure_robot(robot_builder)
-        self.robot = self._add_component(robot_builder)
 
-        # Create the tracker component.
+        # Configure the tracker component.
         tracker_builder = TrackerComponentBuilder()
         self._configure_tracker(tracker_builder)
+        if phasespace_server:
+            tracker_builder.set_tracker_type(
+                TrackerType.PHASESPACE, server_address=phasespace_server)
+
+        # Configure the hardware reset procedure.
+        self._hardware_reset = None
+        if self._device_path is not None:
+            if reset_type is None or reset_type == 'scripted':
+                self._hardware_reset = ScriptedDKittyResetProcedure()
+            elif reset_type == 'manual-auto':
+                self._hardware_reset = ManualAutoDKittyResetProcedure()
+            elif reset_type == 'manual':
+                self._hardware_reset = ManualResetProcedure()
+            else:
+                raise NotImplementedError(reset_type)
+            for builder in (robot_builder, tracker_builder):
+                self._hardware_reset.configure_reset_groups(builder)
+
+        # Create the components.
+        self.robot = self._add_component(robot_builder)
         self.tracker = self._add_component(tracker_builder)
 
         # Disable the constraint solver in hardware so that mimicked positions
@@ -158,7 +182,6 @@ class BaseDKittyEnv(RobotEnv, metaclass=abc.ABCMeta):
             builder.update_group(
                 'dkitty',
                 motor_ids=[10, 11, 12, 20, 21, 22, 30, 31, 32, 40, 41, 42])
-            scripted_reset.add_groups_for_reset(builder)
 
     def _configure_tracker(self, builder: TrackerComponentBuilder):
         """Configures the tracker component."""
@@ -182,15 +205,17 @@ class BaseDKittyEnv(RobotEnv, metaclass=abc.ABCMeta):
         kitty_vel = np.zeros(12) if kitty_vel is None else np.asarray(kitty_vel)
 
         # Perform the scripted reset if we're not doing manual resets.
-        if self.robot.is_hardware and not self._manual_reset:
-            scripted_reset.reset_standup(self.robot, self.tracker)
+        if self._hardware_reset:
+            self._hardware_reset.reset(robot=self.robot, tracker=self.tracker)
 
+        # Reset the robot state.
         self.robot.set_state({
             'dkitty': RobotState(qpos=kitty_pos, qvel=kitty_vel),
         })
-        if self._manual_reset:
-            # Prompt the user to start the episode.
-            input('Press Enter to start the episode...')
+
+        # Complete the hardware reset.
+        if self._hardware_reset:
+            self._hardware_reset.finish()
 
         # Reset the clock to 0 for hardware.
         if self.robot.is_hardware:
@@ -236,7 +261,7 @@ class BaseDKittyUprightEnv(BaseDKittyEnv):
         super()._configure_tracker(builder)
         builder.add_tracker_group(
             'torso',
-            vr_tracker_id=self._torso_tracker_id,
+            hardware_tracker_id=self._torso_tracker_id,
             sim_params=dict(
                 element_name='torso',
                 element_type='joint',
@@ -244,7 +269,7 @@ class BaseDKittyUprightEnv(BaseDKittyEnv):
             ),
             hardware_params=dict(
                 is_origin=True,
-                tracked_rotation_offset=(-1.57, 0, 1.57),
+                # tracked_rotation_offset=(-1.57, 0, 1.57),
             ))
 
     def _get_upright_obs(self,

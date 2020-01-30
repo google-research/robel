@@ -53,43 +53,10 @@ class VrDeviceShell(cmd.Cmd):
 
         pose_batch = self.client.get_poses()
         for device in devices:
-            pos, euler = pose_batch.get_pos_euler(device)
+            state = pose_batch.get_state(device)
             print(device.get_summary())
-            print('> Pos: [{:.3f} {:.3f} {:.3f}]'.format(*pos))
-            print('> Rot: [{:.3f} {:.3f} {:.3f}]'.format(*euler))
-
-    def do_origin(self, args):
-        """Sets the given device number as the origin."""
-        components = args.strip().split()
-        if not components or not components[0]:
-            print('Must provide device number.')
-            return
-        device_id = components[0]
-        position_offset = None
-        if len(components) >= 4:
-            position_offset = list(map(float, components[1:4]))
-        rotation_offset = None
-        if len(components) >= 7:
-            rotation_offset = list(map(float, components[4:7]))
-
-        device = self.client.get_device(device_id)
-        print('Setting device {} as the origin.'.format(
-            device.get_model_name()))
-        pos_offsets = None
-        quat_offsets = None
-        if position_offset:
-            pos_offsets = {device: position_offset}
-        if rotation_offset:
-            quat_offsets = {device: euler2quat(*rotation_offset, axes='rxyz')}
-
-        self.client.update_coordinate_system(
-            origin_device=device,
-            device_position_offsets=pos_offsets,
-            device_rotation_offsets=quat_offsets)
-
-    def do_plot(self, unused_arg):
-        """Plots the position for the given device number."""
-        self.client.show_plot(auto_update=True, frame_rate=30)
+            print('> Pos: [{:.3f} {:.3f} {:.3f}]'.format(*state.pos))
+            print('> Rot: [{:.3f} {:.3f} {:.3f}]'.format(*state.rot_euler))
 
     def emptyline(self):
         """Overrides behavior when an empty line is sent."""

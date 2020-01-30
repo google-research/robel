@@ -23,6 +23,7 @@ import numpy as np
 
 from robel.components.robot import RobotComponentBuilder, RobotState
 from robel.components.robot.dynamixel_utils import CalibrationMap
+from robel.dclaw import scripted_reset
 from robel.robot_env import make_box_space, RobotEnv
 
 # Convenience constants.
@@ -112,6 +113,7 @@ class BaseDClawEnv(RobotEnv, metaclass=abc.ABCMeta):
             builder.set_hardware_calibration_map(DEFAULT_DCLAW_CALIBRATION_MAP)
             builder.update_group(
                 'dclaw', motor_ids=[10, 11, 12, 20, 21, 22, 30, 31, 32])
+            scripted_reset.add_groups_for_reset(builder)
 
     def _initialize_action_space(self) -> gym.Space:
         """Returns the observation space to use for this environment."""
@@ -205,9 +207,6 @@ class BaseDClawObjectEnv(BaseDClawEnv, metaclass=abc.ABCMeta):
                 'object', sim_observation_noise=self._sim_observation_noise)
         if self._device_path:
             builder.update_group('object', motor_ids=[50])
-            # Add group to disable during reset to avoid getting stuck.
-            builder.add_group(
-                'disable_in_reset', motor_ids=[10, 12, 20, 22, 30, 32, 50])
 
         # Add the guide group, which is a no-op if the guide motor is unused.
         builder.add_group('guide')
@@ -249,27 +248,15 @@ class BaseDClawObjectEnv(BaseDClawEnv, metaclass=abc.ABCMeta):
         guide_pos = (
             np.zeros(1) if guide_pos is None else np.atleast_1d(guide_pos))
 
-        if not self.robot.is_hardware:
+        if self.robot.is_hardware:
+            scripted_reset.reset_to_states(
+                self.robot, {
+                    'dclaw': RobotState(qpos=claw_pos),
+                    'object': RobotState(qpos=object_pos),
+                    'guide': RobotState(qpos=guide_pos),
+                })
+        else:
             self.robot.set_state({
                 'dclaw': RobotState(qpos=claw_pos, qvel=claw_vel),
                 'object': RobotState(qpos=object_pos, qvel=object_vel),
             })
-        else:
-            # Multi-stage reset procedure for hardware.
-            # Initially attempt to reset a subset of the motors.
-            self.robot.set_motors_engaged('disable_in_reset', False)
-            self.robot.set_state({'dclaw': RobotState(qpos=claw_pos)},
-                                 block=False)
-
-            self.robot.set_motors_engaged(['object', 'guide'], True)
-            self.robot.set_state({
-                'object': RobotState(qpos=object_pos),
-                'guide': RobotState(qpos=guide_pos)
-            })
-
-            self.robot.set_motors_engaged('dclaw', True)
-            self.robot.set_state({'dclaw': RobotState(qpos=claw_pos)})
-
-            # Start the episode with the object disengaged.
-            self.robot.set_motors_engaged('object', False)
-            self.robot.reset_time()

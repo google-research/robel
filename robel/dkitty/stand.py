@@ -43,32 +43,6 @@ DEFAULT_OBSERVATION_KEYS = (
     'pose_error',
 )
 
-# Override the qpos_range for the D'Kitty joints.
-ROBOT_CONFIG_OVERRIDE = {
-    'groups': {
-        'dkitty': {
-            'qpos_range': [
-                # FR
-                (-1.57, 0.279),
-                (-2.14, 2.14),
-                (-1.57, 1.57),
-                # FL
-                (-0.279, 1.57),
-                (-2.14, 2.14),
-                (-1.57, 1.57),
-                # BL
-                (-0.279, 1.57),
-                (-2.14, 2.14),
-                (-1.57, 1.57),
-                # BR
-                (-1.57, 0.279),
-                (-2.14, 2.14),
-                (-1.57, 1.57),
-            ],
-        }
-    }
-}
-
 
 class BaseDKittyStand(BaseDKittyUprightEnv, metaclass=abc.ABCMeta):
     """Shared logic for DKitty turn tasks."""

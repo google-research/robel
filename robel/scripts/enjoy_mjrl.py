@@ -42,7 +42,7 @@ def policy_factory(args: argparse.Namespace):
     # Get default policy path from the environment name.
     policy_path = args.policy
     if not policy_path:
-        policy_path = DEFAULT_POLICY_FORMAT.format(args.env_id)
+        policy_path = DEFAULT_POLICY_FORMAT.format(args.env_name)
 
     # Load the policy
     with open(policy_path, 'rb') as f:

@@ -99,7 +99,7 @@ class BaseDKittyOrient(BaseDKittyUprightEnv, metaclass=abc.ABCMeta):
         super()._configure_tracker(builder)
         builder.add_tracker_group(
             'target',
-            vr_tracker_id=self._target_tracker_id,
+            hardware_tracker_id=self._target_tracker_id,
             sim_params=dict(
                 element_name='target',
                 element_type='site',

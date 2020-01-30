@@ -47,7 +47,7 @@ def get_data_files(package_dir, patterns):
 
 setuptools.setup(
     name="robel",
-    version="0.1.1",
+    version="0.1.2",
     license='Apache 2.0',
     description=('Robotics reinforcement learning benchmark tasks with '
                  'cost-effective robots.'),

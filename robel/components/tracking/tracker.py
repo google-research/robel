@@ -78,6 +78,11 @@ class TrackerState:
     def rot_euler(self, value):
         self._rot_euler = value
 
+    @property
+    def rot_quat(self):
+        """Returns the rotation as a quaternion."""
+        return mat2quat(self.rot)
+
 
 class TrackerComponent(BaseComponent):
     """Component for reading tracking data."""

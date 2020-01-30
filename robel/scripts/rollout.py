@@ -150,7 +150,7 @@ def do_rollouts(env,
 def rollout_script(arg_def_fn=None,
                    env_factory=None,
                    policy_factory=None,
-                   add_policy_arg: bool = True):
+                   add_policy_arg: bool = False):
     """Performs a rollout script.
 
     Args:
