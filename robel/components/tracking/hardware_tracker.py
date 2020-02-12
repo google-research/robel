@@ -33,7 +33,6 @@ DeviceId = Union[int, str]
 
 class HardwareTrackerGroupConfig(TrackerGroupConfig):
     """Stores group configuration for a VrTrackerComponent."""
-
     def __init__(self,
                  *args,
                  device_identifier: Optional[DeviceId] = None,
@@ -87,7 +86,6 @@ class HardwareTrackerGroupConfig(TrackerGroupConfig):
 
 class HardwareTrackerComponent(TrackerComponent):
     """Component for reading tracking data from a HTC Vive."""
-
     def __init__(self, *args, **kwargs):
         """Create a new hardware tracker component."""
         super().__init__(*args, **kwargs)
@@ -106,6 +104,7 @@ class HardwareTrackerComponent(TrackerComponent):
     def _get_group_states(
             self,
             configs: Sequence[HardwareTrackerGroupConfig],
+            raw_states: bool = False,
     ) -> Sequence[TrackerState]:
         """Returns the TrackerState for the given groups.
 
@@ -123,7 +122,8 @@ class HardwareTrackerComponent(TrackerComponent):
                 # Fall back to simulation site.
                 states.append(self._get_element_state(config))
                 continue
-            state = self._get_tracker_state(config.device_identifier)
+            state = self._get_tracker_state(
+                config.device_identifier, ignore_device_transform=raw_states)
 
             # Mimic the site in simulation if needed.
             if config.mimic_in_sim:
@@ -174,8 +174,8 @@ class HardwareTrackerComponent(TrackerComponent):
                     else:
                         pos_offset = pos_offset + state.pos
                 else:
-                    ignored_group_positions.append((group_name, device_id,
-                                                    state.pos))
+                    ignored_group_positions.append(
+                        (group_name, device_id, state.pos))
 
             if state.rot is not None:
                 logging.warning('Ignoring setting rotation for group: "%s"',

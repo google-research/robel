@@ -14,9 +14,6 @@
 
 """Hardware reset functions for the D'Kitty."""
 
-import logging
-import time
-
 import numpy as np
 
 from robel.components.builder import ComponentBuilder
@@ -37,216 +34,178 @@ SET_PARAMS = dict(
     last_diff_tol=.1 * np.pi / 180,  # 5 degrees
 )
 
+# Convenience constants.
+PI = np.pi
+PI2 = np.pi / 2
+PI4 = np.pi / 4
+PI6 = np.pi / 6
+
+OUTWARD_TUCK_POSE = np.array([0, -MIDMAX, FOOTMAX, 0, MIDMAX, -FOOTMAX])
+INWARD_TUCK_POSE = np.array([0, MIDMAX, -FOOTMAX, 0, -MIDMAX, FOOTMAX])
+
 
 class ScriptedDKittyResetProcedure(ResetProcedure):
     """Scripted reset procedure for D'Kitty.
 
     This resets the D'Kitty to a standing position.
     """
+    def __init__(self,
+                 upright_threshold: float = 0.9,
+                 standing_height: float = 0.35,
+                 height_tolerance: float = 0.05,
+                 max_attempts: int = 5):
+        super().__init__()
+        self._upright_threshold = upright_threshold
+        self._standing_height = standing_height
+        self._height_tolerance = height_tolerance
+        self._max_attempts = max_attempts
+        self._robot = None
+        self._tracker = None
 
     def configure_reset_groups(self, builder: ComponentBuilder):
         """Configures the component groups needed for reset."""
         if isinstance(builder, RobotComponentBuilder):
-            builder.add_group('base', motor_ids=[10, 20, 30, 40])
-            builder.add_group('middle', motor_ids=[11, 21, 31, 41])
-            builder.add_group('feet', motor_ids=[12, 22, 32, 42])
-            builder.add_group('front', motor_ids=[11, 12, 21, 22])
-            builder.add_group('back', motor_ids=[31, 32, 41, 42])
-            builder.add_group(
-                'all',
-                motor_ids=[10, 11, 12, 20, 21, 22, 30, 31, 32, 40, 41, 42])
+            builder.add_group('left', motor_ids=[20, 21, 22, 30, 31, 32])
+            builder.add_group('right', motor_ids=[10, 11, 12, 40, 41, 42])
+            builder.add_group('front', motor_ids=[10, 11, 12, 20, 21, 22])
+            builder.add_group('back', motor_ids=[30, 31, 32, 40, 41, 42])
         elif isinstance(builder, TrackerComponentBuilder):
             assert 'torso' in builder.group_configs
 
     def reset(self, robot: DynamixelRobotComponent, tracker: TrackerComponent):
         """Performs the reset procedure."""
-        start_time = time.time()
-        reset = False
-        num_attempts = 0
-        # Is it high, flat, and are all of it's joints at 0
-        while not self._is_standing(robot, tracker) and not reset:
-            # Splay the kitty out and let limp
-            robot.set_state(
-                {
-                    'base': RobotState(
-                        qpos=np.array([
-                            -np.pi / 2.1, np.pi / 2.1, np.pi / 2.1, -np.pi / 2.1
-                        ])),
-                    'feet': RobotState(qpos=np.full(4, FOOTMAX)),
-                    'middle': RobotState(qpos=np.full(4, -MIDMAX))
-                },
-                **SET_PARAMS,
-                timeout=5,
-            )
-            time.sleep(1)
-            robot.set_motors_engaged('dkitty', engaged=False)
-            time.sleep(.3)
-            robot.set_motors_engaged('dkitty', engaged=True)
+        self._robot = robot
+        self._tracker = tracker
 
-            if tracker.is_hardware:
-                # If the robot has a tracker use it to do the reset
-                # Gravity tells us whether it's on its back
-                base_state = np.abs(robot.get_state('base').qpos)
-                if np.all(base_state > 1.75) and np.all(base_state < 2.45):
-                    # Use base joints because tracker can't be seen
-                    self._back_recover(robot)
-                elif (
-                        self._is_flat(tracker)
-                        and self._get_height(tracker) < .17
-                        and np.all(base_state < 1.75)
-                        and np.all(base_state > 1.1)
-                ):  # Tracker values tells us for sure whether it's on its chest
-                    self._chest_recover(robot)
-                else:
-                    self._flail(robot)
-            else:
-                # If the robot doesn't have a tracker, use gravity
-                base_state = np.abs(robot.get_state('base').qpos)
-                if np.all(base_state < 1.75) and np.all(base_state > 1.1):
-                    self._chest_recover(robot)
-                    reset = True
-                elif np.all(base_state > 1.75) and np.all(base_state < 2.45):
-                    self._back_recover(robot)
-                    reset = True
-                else:
-                    self._flail(robot)
-            num_attempts += 1
+        attempts = 0
+        while not self._is_standing():
+            attempts += 1
+            if attempts > self._max_attempts:
+                break
 
-        logging.info('Total reset time: %1.2f over %d attempts',
-                     time.time() - start_time, num_attempts)
+            if self._is_upside_down():
+                self._perform_flip_over()
 
-    def _get_rotation(self, tracker: TrackerComponent):
-        """Returns the Euler rotation of the tracker."""
-        # Data is [0]=side-side [1]=flat [2]=forward-back
-        if tracker.is_hardware:
-            torso_state = tracker.get_state('torso')
-            return torso_state.rot_euler
-        return (0, 0, 0)
+            self._perform_tuck_under()
+            self._perform_stand_up()
 
-    def _get_height(self, tracker: TrackerComponent):
-        """Returns the height of the tracker, assuming relative to the floor."""
-        if tracker.is_hardware:
-            torso_state = tracker.get_state('torso')
-            return torso_state.pos[2]
-        return 0
-
-    def _is_standing(self, robot: DynamixelRobotComponent,
-                     tracker: TrackerComponent):
-        """Returns True if the D'Kitty is standing.
-
-        Checks the rotation and height of the tracker and whether all joints are
-        0 in case the other two fail.
-        """
-        if tracker.is_hardware:
-            flat = self._is_flat(tracker)
-            h1 = self._get_height(tracker)
-            time.sleep(.2)
-            h2 = self._get_height(tracker)
-            tall = h1 != h2 and h1 > .175
-            straight_legs = np.all(abs(robot.get_state('all').qpos) < .15)
-            return flat and tall and straight_legs
-        return False
-
-    def _is_flat(self, tracker: TrackerComponent):
-        """Returns True if the tracker is flat relative to floor."""
-        if tracker.is_hardware:
-            return abs(abs(self._get_rotation(tracker)[0]) - 1.56) < .2
+    def _is_standing(self) -> bool:
+        """Returns True if the D'Kitty is fully standing."""
+        state = self._tracker.get_state('torso', raw_states=True)
+        height = state.pos[2]
+        upright = state.rot[2, 2]
+        print('Upright: {:2f}, height: {:2f}'.format(upright, height))
+        if upright < self._upright_threshold:
+            return False
+        if (np.abs(height - self._standing_height) > self._height_tolerance):
+            return False
         return True
 
-    def _flail(self, robot: DynamixelRobotComponent):
-        """Commands the robot to flail if it's stuck on an obstacle."""
-        for _ in range(6):
-            robot.set_state(
-                {'all': RobotState(qpos=(np.random.rand(12) - .5) * 3)},
-                **SET_PARAMS,
-                timeout=.15,
-            )
+    def _get_uprightedness(self) -> float:
+        """Returns the uprightedness of the D'Kitty."""
+        return self._tracker.get_state('torso', raw_states=True).rot[2, 2]
 
-    def _chest_recover(self, robot: DynamixelRobotComponent):
-        """Recovers the robot when it's laying flat on its chest."""
-        robot.set_state({
-            'middle':
-                RobotState(qpos=np.array([-MIDMAX, -MIDMAX, -MIDMAX, -MIDMAX])),
-            'feet':
-                RobotState(qpos=np.array([FOOTMAX, FOOTMAX, FOOTMAX, FOOTMAX]))
-        }, **SET_PARAMS)
-        # Wiggle back and forth to get the feet fully underneath the dkitty.
-        base_position = np.array([BASEMAX, BASEMAX, BASEMAX, BASEMAX])
-        for i in range(2):
-            robot.set_state(
+    def _is_upside_down(self) -> bool:
+        """Returns whether the D'Kitty is upside-down."""
+        return self._get_uprightedness() < 0
+
+    def _perform_flip_over(self):
+        """Attempts to flip the D'Kitty over."""
+        while self._is_upside_down():
+            print('Is upside down {}; attempting to flip over...'.format(
+                self._get_uprightedness()))
+            # Spread flat and extended.
+            self._perform_flatten()
+            # If we somehow flipped over from that, we're done.
+            if not self._is_upside_down():
+                return
+            # Tuck in one side while pushing down on the other side.
+            self._robot.set_state(
                 {
-                    'base': RobotState(
-                        qpos=(base_position if i % 2 == 0 else -base_position))
+                    'left':
+                        RobotState(qpos=np.array([-PI4, -MIDMAX, FOOTMAX] * 2)),
+                    'right': RobotState(qpos=np.array([-PI - PI4, 0, 0] * 2)),
                 },
+                timeout=4,
                 **SET_PARAMS,
-                timeout=1,
             )
-            time.sleep(1)
-        robot.set_state({'base': RobotState(qpos=np.zeros(4))}, **SET_PARAMS)
+            # Straighten out the legs that were pushing down.
+            self._robot.set_state(
+                {
+                    'left': RobotState(qpos=np.array([PI2, 0, 0] * 2)),
+                    'right': RobotState(qpos=np.array([-PI2, 0, 0] * 2)),
+                },
+                timeout=4,
+                **SET_PARAMS,
+            )
 
-        self._straighten_legs(robot, True)
+    def _perform_tuck_under(self):
+        """Tucks the D'Kitty's legs so that they're under itself."""
+        # Bring in both sides of the D'Kitty while remaining flat.
+        self._perform_flatten()
+        # Tuck one side at a time.
+        for side in ('left', 'right'):
+            self._robot.set_state(
+                {side: RobotState(qpos=np.array(INWARD_TUCK_POSE))},
+                timeout=4,
+                **SET_PARAMS,
+            )
 
-    def _back_recover(self, robot: DynamixelRobotComponent):
-        """Recovers the D'Kitty from a flipped over position."""
-        # Fixed legs in straight and put all base joints at same max angle.
-        # Illustration: _._._ -> _‾/
-        robot.set_state({
-            'base': RobotState(qpos=np.full(4, -BASEMAX)),
-            'middle': RobotState(qpos=np.zeros(4)),
-            'feet': RobotState(qpos=np.zeros(4))
-        }, **SET_PARAMS)
-        time.sleep(1)
-        # Use the legs to shift its CG and get onto its side. -> _‾|
-        robot.set_state({'base': RobotState(qpos=np.zeros(4))}, **SET_PARAMS)
-        robot.set_state({
-            'middle': RobotState(qpos=np.array([0, -MIDMAX, -MIDMAX, 0])),
-            'feet': RobotState(qpos=np.array([0, FOOTMAX, FOOTMAX, 0]))
-        }, **SET_PARAMS)
-        cbstate = np.array([BASEMAX, BASEMAX / 1.4, BASEMAX / 1.4, BASEMAX])
-        robot.set_state({'base': RobotState(qpos=cbstate)}, **SET_PARAMS)
-        robot.set_state({
-            'middle': RobotState(qpos=np.zeros(4)),
-            'feet': RobotState(qpos=np.zeros(4))
-        }, **SET_PARAMS)
-        # Fully fold legs causing the dkitty to tip onto its feet, doing this
-        # and the previous step separately decreases the possibility of binding.
-        # -> ̷‾̷
-        robot.set_state({
-            'base': RobotState(qpos=np.full(4, BASEMAX)),
-            'feet': RobotState(qpos=np.zeros(4)),
-            'middle': RobotState(qpos=np.array([-MIDMAX, 0, 0, -MIDMAX]))
-        }, **SET_PARAMS)
-        time.sleep(.5)
-        robot.set_state({
-            'feet': RobotState(qpos=np.full(4, FOOTMAX)),
-            'middle': RobotState(qpos=np.full(4, -MIDMAX))
-        }, **SET_PARAMS)
-        # Pivot the legs so that the kitty is now in a pouncing stance. -> |‾|
-        robot.set_state({'base': RobotState(qpos=np.zeros(4))}, **SET_PARAMS)
-        time.sleep(1)
-        self._straighten_legs(robot, True)
+    def _perform_flatten(self):
+        """Makes the D'Kitty go into a flat pose."""
+        left_pose = INWARD_TUCK_POSE.copy()
+        left_pose[[0, 3]] = PI2
+        right_pose = INWARD_TUCK_POSE.copy()
+        right_pose[[0, 3]] = -PI2
+        self._robot.set_state(
+            {
+                'left': RobotState(qpos=left_pose),
+                'right': RobotState(qpos=right_pose),
+            },
+            timeout=4,
+            **SET_PARAMS,
+        )
 
-    def _straighten_legs(self,
-                         robot: DynamixelRobotComponent,
-                         reverse: bool = False):
-        """Straightens out the legs of the D'Kitty."""
-        front_state, back_state = robot.get_state(['front', 'back'])
-        frontpos = front_state.qpos
-        backpos = back_state.qpos
-        states = []
-        resolution = 4
-        for i in range(resolution, -1, -1):
-            if reverse:
-                states.append(
-                    dict(back=RobotState(qpos=backpos * i / resolution)))
-                states.append(
-                    dict(front=RobotState(qpos=frontpos * i / resolution)))
-            else:
-                states.append(
-                    dict(front=RobotState(qpos=frontpos * i / resolution)))
-                states.append(
-                    dict(back=RobotState(qpos=backpos * i / resolution)))
-        for state in states:
-            robot.set_state(state, **SET_PARAMS)
-            time.sleep(.2)
-        time.sleep(1)
+    def _perform_stand_up(self):
+        """Makes the D'Kitty stand up."""
+        # Flip the back and front.
+        self._robot.set_state(
+            {
+                'back': RobotState(
+                    qpos=np.array(OUTWARD_TUCK_POSE[3:].tolist() * 2)),
+            },
+            timeout=4,
+            **SET_PARAMS,
+        )
+        self._robot.set_state(
+            {
+                'front': RobotState(
+                    qpos=np.array(OUTWARD_TUCK_POSE[:3].tolist() * 2)),
+            },
+            timeout=4,
+            **SET_PARAMS,
+        )
+        # Stand straight up.
+        self._robot.set_state(
+            {
+                'dkitty': RobotState(qpos=np.zeros(12)),
+            },
+            timeout=3,
+            **SET_PARAMS,
+        )
+        # Tuck a bit.
+        self._robot.set_state(
+            {
+                'dkitty': RobotState(qpos=np.array([0, PI6, -PI6] * 4)),
+            },
+            timeout=1,
+            **SET_PARAMS,
+        )
+        # Stand straight up.
+        self._robot.set_state(
+            {
+                'dkitty': RobotState(qpos=np.zeros(12)),
+            },
+            timeout=3,
+            **SET_PARAMS,
+        )

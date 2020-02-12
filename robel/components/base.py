@@ -33,12 +33,11 @@ GroupState = Any  # pylint: disable=invalid-name
 
 class BaseComponent(abc.ABC):
     """Base class for all components."""
-
     def __init__(
-            self,
-            sim_scene: SimScene,
-            groups: Dict[str, Dict],
-            random_state: Optional[np.random.RandomState] = None,
+        self,
+        sim_scene: SimScene,
+        groups: Dict[str, Dict],
+        random_state: Optional[np.random.RandomState] = None,
     ):
         """Initializes a new component.
 
@@ -75,10 +74,8 @@ class BaseComponent(abc.ABC):
     def close(self):
         """Cleans up any resources used by the component."""
 
-    def get_state(
-            self,
-            groups: Union[str, Sequence[str]],
-    ) -> Union[GroupState, Sequence[GroupState]]:
+    def get_state(self, groups: Union[str, Sequence[str]],
+                  **kwargs) -> Union[GroupState, Sequence[GroupState]]:
         """Returns the state of the given groups.
 
         Args:
@@ -90,10 +87,10 @@ class BaseComponent(abc.ABC):
             returns a list of state objects.
         """
         if isinstance(groups, str):
-            states = self._get_group_states([self.get_config(groups)])
+            states = self._get_group_states([self.get_config(groups)], **kwargs)
         else:
             states = self._get_group_states(
-                [self.get_config(name) for name in groups])
+                [self.get_config(name) for name in groups], **kwargs)
 
         if isinstance(groups, str):
             return states[0]
@@ -123,6 +120,6 @@ class BaseComponent(abc.ABC):
         """
 
     @abc.abstractmethod
-    def _get_group_states(
-            self, configs: Sequence[GroupConfig]) -> Sequence[GroupState]:
+    def _get_group_states(self, configs: Sequence[GroupConfig],
+                          **kwargs) -> Sequence[GroupState]:
         """Returns the states for the given group configurations."""
